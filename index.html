@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABBAS TERMINAL | Crypto Markets</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0e17;
+      --panel: #0d1220;
+      --border: #1a2035;
+      --text: #c8d0e0;
+      --muted: #4a5568;
+      --amber: #ff9800;
+      --amber-dim: #b36b00;
+      --green: #00e676;
+      --red: #ff1744;
+      --blue: #448aff;
+      --header-bg: #111827;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--border);
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Liberation Mono', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    /* ── SHELL GRID ── */
+    #terminal {
+      display: grid;
+      grid-template-rows: 32px 1fr 28px;
+      height: 100vh;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    /* ── TICKER BAR ── */
+    .ticker-bar {
+      background: var(--panel);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-track {
+      display: flex;
+      white-space: nowrap;
+      animation: scroll-ticker 60s linear infinite;
+    }
+
+    .ticker-track:hover { animation-play-state: paused; }
+
+    @keyframes scroll-ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 18px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .ticker-item .symbol {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .ticker-item .price { color: var(--text); }
+
+    .ticker-item .change {
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .ticker-sep {
+      color: var(--muted);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      min-height: 0;
+    }
+
+    .panel {
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel-header {
+      background: var(--header-bg);
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--amber);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header .hint {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      min-height: 0;
+    }
+
+    /* Scrollbar */
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-track { background: var(--panel); }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── MARKET TABLE ── */
+    .market-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .market-table th {
+      position: sticky;
+      top: 0;
+      background: var(--header-bg);
+      padding: 6px 8px;
+      text-align: right;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      z-index: 1;
+    }
+
+    .market-table th:first-child { text-align: left; }
+
+    .market-table td {
+      padding: 5px 8px;
+      text-align: right;
+      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
+      transition: background 0.3s;
+    }
+
+    .market-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .market-table tr:hover td { background: rgba(255, 152, 0, 0.04); }
+
+    .coin-rank {
+      color: var(--muted);
+      font-size: 10px;
+      margin-right: 4px;
+    }
+
+    .coin-sym {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .coin-name {
+      color: var(--muted);
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* ── NEWS FEED ── */
+    .news-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
+      cursor: pointer;
+      transition: background 0.2s;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .news-item:hover { background: rgba(255, 152, 0, 0.04); }
+
+    .news-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 10px;
+      margin-bottom: 4px;
+    }
+
+    .news-time { color: var(--blue); }
+    .news-source { color: var(--muted); }
+
+    .news-categories {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .news-cat {
+      color: var(--amber-dim);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .news-title {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    .news-body {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.3;
+      margin-top: 3px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* ── RIGHT COLUMN ── */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      min-height: 0;
+    }
+
+    .right-col .panel { flex: 1; min-height: 0; }
+    .right-col .panel-stats { flex: 0 0 auto; }
+
+    /* ── MOVERS TABLE ── */
+    .movers-section {
+      padding: 4px 0;
+    }
+
+    .movers-label {
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .movers-label.gainers { color: var(--green); }
+    .movers-label.losers { color: var(--red); }
+
+    .mover-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 10px;
+      font-size: 11px;
+      transition: background 0.2s;
+    }
+
+    .mover-row:hover { background: rgba(255, 152, 0, 0.04); }
+
+    .mover-sym { font-weight: 600; color: var(--amber); min-width: 50px; }
+    .mover-price { color: var(--text); min-width: 80px; text-align: right; }
+    .mover-change { font-weight: 600; min-width: 65px; text-align: right; }
+
+    /* ── STATS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .stat-cell {
+      background: var(--panel);
+      padding: 8px 10px;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-size: 11px;
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-brand {
+      color: var(--amber);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .status-tagline {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .status-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-update, .status-clock {
+      color: var(--muted);
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .status-dot.disconnected {
+      background: var(--red);
+      animation: none;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0, 230, 118, 0); }
+    }
+
+    .status-label {
+      color: var(--muted);
+      font-size: 10px;
+      margin-left: 4px;
+    }
+
+    /* ── PRICE FLASH ── */
+    @keyframes flash-green {
+      0% { background: rgba(0, 230, 118, 0.25); }
+      100% { background: transparent; }
+    }
+
+    @keyframes flash-red {
+      0% { background: rgba(255, 23, 68, 0.25); }
+      100% { background: transparent; }
+    }
+
+    .flash-up td { animation: flash-green 0.8s ease-out; }
+    .flash-down td { animation: flash-red 0.8s ease-out; }
+
+    /* ── BOOT OVERLAY ── */
+    #boot-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease;
+    }
+
+    #boot-overlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .boot-title {
+      color: var(--amber);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+    }
+
+    .boot-line {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+      opacity: 0;
+      animation: boot-appear 0.3s ease forwards;
+    }
+
+    @keyframes boot-appear {
+      to { opacity: 1; }
+    }
+
+    .boot-cursor {
+      display: inline-block;
+      width: 7px;
+      height: 13px;
+      background: var(--amber);
+      animation: blink-cursor 0.6s step-end infinite;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    @keyframes blink-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ── POSITIVE / NEGATIVE ── */
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+
+    /* ── LOADING ── */
+    .loading-msg {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 20px 12px;
+      text-align: center;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      #terminal {
+        grid-template-rows: 32px 1fr 28px;
+        overflow-y: auto;
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        min-height: auto;
+      }
+
+      .panel { min-height: 300px; }
+      .right-col { min-height: 400px; }
+
+      html, body { overflow: auto; }
+    }
+
+    /* ── KEYBOARD HINT ── */
+    .kb-hint {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .kb-hint kbd {
+      display: inline-block;
+      padding: 1px 5px;
+      border: 1px solid var(--muted);
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 10px;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BOOT OVERLAY -->
+  <div id="boot-overlay">
+    <div class="boot-title">ABBAS TERMINAL</div>
+    <div class="boot-line" style="animation-delay: 0.2s">Initializing market data feeds...</div>
+    <div class="boot-line" style="animation-delay: 0.6s">Connecting to CoinGecko API...</div>
+    <div class="boot-line" style="animation-delay: 1.0s">Connecting to CryptoCompare API...</div>
+    <div class="boot-line" style="animation-delay: 1.4s">Loading terminal<span class="boot-cursor"></span></div>
+  </div>
+
+  <!-- TERMINAL -->
+  <div id="terminal">
+
+    <!-- TICKER BAR -->
+    <div class="ticker-bar">
+      <div class="ticker-track" id="ticker-track">
+        <span class="loading-msg" style="padding: 0 20px;">Loading market data...</span>
+      </div>
+    </div>
+
+    <!-- MAIN 3-COLUMN -->
+    <div class="main-grid">
+
+      <!-- LEFT: MARKET OVERVIEW -->
+      <div class="panel">
+        <div class="panel-header">
+          Market Overview
+          <span class="hint">Top 10 by Market Cap</span>
+        </div>
+        <div class="panel-body">
+          <table class="market-table" id="market-table">
+            <thead>
+              <tr>
+                <th>Coin</th>
+                <th>Price</th>
+                <th>24h %</th>
+                <th>7d %</th>
+                <th>MCap</th>
+                <th>Vol 24h</th>
+              </tr>
+            </thead>
+            <tbody id="market-tbody">
+              <tr><td colspan="6" class="loading-msg">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CENTER: NEWS FEED -->
+      <div class="panel">
+        <div class="panel-header">
+          News Feed
+          <span class="hint">CryptoCompare</span>
+        </div>
+        <div class="panel-body" id="news-feed">
+          <div class="loading-msg">Loading news...</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: MOVERS + STATS -->
+      <div class="right-col">
+        <div class="panel">
+          <div class="panel-header">
+            Top Movers
+            <span class="hint">24h Change</span>
+          </div>
+          <div class="panel-body" id="movers-body">
+            <div class="loading-msg">Loading...</div>
+          </div>
+        </div>
+        <div class="panel panel-stats">
+          <div class="panel-header">Market Stats</div>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-cell">
+              <div class="stat-label">Total MCap</div>
+              <div class="stat-value" id="stat-mcap">—</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-label">BTC Dominance</div>
+              <div class="stat-value" id="stat-btcdom">—</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-label">24h Volume</div>
+              <div class="stat-value" id="stat-vol">—</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-label">ETH/BTC</div>
+              <div class="stat-value" id="stat-ethbtc">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="status-bar">
+      <div class="status-left">
+        <span class="status-brand">ABBAS TERMINAL</span>
+        <span class="status-tagline">Encrypted financial rails for the world</span>
+        <span class="kb-hint"><kbd>R</kbd> refresh</span>
+      </div>
+      <div class="status-right">
+        <span class="status-update" id="status-update">LAST UPDATE: —</span>
+        <span class="status-clock" id="status-clock">--:--:--</span>
+        <span><span class="status-dot" id="status-dot"></span><span class="status-label" id="status-label">CONNECTED</span></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── STATE ──
+    let prevPrices = {};
+    let allCoins = [];
+    let bootDone = false;
+
+    // ── HELPERS ──
+    function fmt(n, decimals) {
+      if (n == null) return '—';
+      if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
+      if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
+      return '$' + n.toFixed(decimals != null ? decimals : 2);
+    }
+
+    function fmtPrice(n) {
+      if (n == null) return '—';
+      if (n >= 1) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (n >= 0.01) return '$' + n.toFixed(4);
+      return '$' + n.toFixed(6);
+    }
+
+    function fmtPct(n) {
+      if (n == null) return '—';
+      const sign = n >= 0 ? '+' : '';
+      return sign + n.toFixed(2) + '%';
+    }
+
+    function pctClass(n) {
+      if (n == null) return '';
+      return n >= 0 ? 'pos' : 'neg';
+    }
+
+    function timeAgo(ts) {
+      const diff = Math.floor((Date.now() / 1000) - ts);
+      if (diff < 60) return diff + 's ago';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    function setConnected(ok) {
+      const dot = document.getElementById('status-dot');
+      const label = document.getElementById('status-label');
+      if (ok) {
+        dot.className = 'status-dot';
+        label.textContent = 'CONNECTED';
+      } else {
+        dot.className = 'status-dot disconnected';
+        label.textContent = 'OFFLINE';
+      }
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('status-clock').textContent =
+        now.toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function updateTimestamp() {
+      const now = new Date();
+      document.getElementById('status-update').textContent =
+        'LAST UPDATE: ' + now.toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    // ── FETCH MARKET DATA ──
+    async function fetchMarketData() {
+      try {
+        const resp = await fetch(
+          'https://api.coingecko.com/api/v3/coins/markets?' +
+          'vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&' +
+          'price_change_percentage=24h,7d'
+        );
+        if (!resp.ok) throw new Error('CoinGecko HTTP ' + resp.status);
+        const data = await resp.json();
+        allCoins = data;
+        renderTicker(data);
+        renderMarketTable(data.slice(0, 10));
+        renderMovers(data);
+        renderStats(data);
+        updateTimestamp();
+        setConnected(true);
+
+        if (!bootDone) {
+          bootDone = true;
+          const overlay = document.getElementById('boot-overlay');
+          overlay.classList.add('fade-out');
+          setTimeout(() => overlay.style.display = 'none', 700);
+        }
+      } catch (err) {
+        console.error('Market fetch error:', err);
+        setConnected(false);
+        if (!bootDone) {
+          bootDone = true;
+          const overlay = document.getElementById('boot-overlay');
+          overlay.classList.add('fade-out');
+          setTimeout(() => overlay.style.display = 'none', 700);
+        }
+      }
+    }
+
+    // ── RENDER TICKER ──
+    function renderTicker(coins) {
+      const track = document.getElementById('ticker-track');
+      let html = '';
+      const items = coins.map(c => {
+        const pct = c.price_change_percentage_24h;
+        const cls = pctClass(pct);
+        return `<span class="ticker-item">` +
+          `<span class="symbol">${c.symbol.toUpperCase()}</span>` +
+          `<span class="price">${fmtPrice(c.current_price)}</span>` +
+          `<span class="change ${cls}">${fmtPct(pct)}</span>` +
+          `</span><span class="ticker-sep">|</span>`;
+      }).join('');
+      // Duplicate for seamless loop
+      track.innerHTML = items + items;
+    }
+
+    // ── RENDER MARKET TABLE ──
+    function renderMarketTable(coins) {
+      const tbody = document.getElementById('market-tbody');
+      const rows = coins.map((c, i) => {
+        const pct24 = c.price_change_percentage_24h;
+        const pct7d = c.price_change_percentage_7d_in_currency;
+        const prev = prevPrices[c.id];
+        let flashClass = '';
+        if (prev != null && c.current_price !== prev) {
+          flashClass = c.current_price > prev ? 'flash-up' : 'flash-down';
+        }
+        prevPrices[c.id] = c.current_price;
+        return `<tr class="${flashClass}">` +
+          `<td><span class="coin-rank">${i + 1}</span><span class="coin-sym">${c.symbol.toUpperCase()}</span><span class="coin-name">${c.name}</span></td>` +
+          `<td>${fmtPrice(c.current_price)}</td>` +
+          `<td class="${pctClass(pct24)}">${fmtPct(pct24)}</td>` +
+          `<td class="${pctClass(pct7d)}">${fmtPct(pct7d)}</td>` +
+          `<td>${fmt(c.market_cap)}</td>` +
+          `<td>${fmt(c.total_volume)}</td>` +
+          `</tr>`;
+      }).join('');
+      tbody.innerHTML = rows;
+    }
+
+    // ── RENDER MOVERS ──
+    function renderMovers(coins) {
+      const body = document.getElementById('movers-body');
+      const sorted = [...coins].sort((a, b) =>
+        (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0)
+      );
+      const gainers = sorted.slice(0, 5);
+      const losers = sorted.slice(-5).reverse();
+
+      let html = '<div class="movers-section">';
+      html += '<div class="movers-label gainers">▲ Gainers</div>';
+      gainers.forEach(c => {
+        const pct = c.price_change_percentage_24h;
+        html += `<div class="mover-row">` +
+          `<span class="mover-sym">${c.symbol.toUpperCase()}</span>` +
+          `<span class="mover-price">${fmtPrice(c.current_price)}</span>` +
+          `<span class="mover-change pos">${fmtPct(pct)}</span></div>`;
+      });
+      html += '</div><div class="movers-section">';
+      html += '<div class="movers-label losers">▼ Losers</div>';
+      losers.forEach(c => {
+        const pct = c.price_change_percentage_24h;
+        html += `<div class="mover-row">` +
+          `<span class="mover-sym">${c.symbol.toUpperCase()}</span>` +
+          `<span class="mover-price">${fmtPrice(c.current_price)}</span>` +
+          `<span class="mover-change neg">${fmtPct(pct)}</span></div>`;
+      });
+      html += '</div>';
+      body.innerHTML = html;
+    }
+
+    // ── RENDER STATS ──
+    function renderStats(coins) {
+      const totalMcap = coins.reduce((s, c) => s + (c.market_cap || 0), 0);
+      const totalVol = coins.reduce((s, c) => s + (c.total_volume || 0), 0);
+      const btc = coins.find(c => c.id === 'bitcoin');
+      const eth = coins.find(c => c.id === 'ethereum');
+      const btcDom = btc ? ((btc.market_cap / totalMcap) * 100).toFixed(1) + '%' : '—';
+      const ethBtc = (btc && eth) ? (eth.current_price / btc.current_price).toFixed(6) : '—';
+
+      document.getElementById('stat-mcap').textContent = fmt(totalMcap);
+      document.getElementById('stat-btcdom').textContent = btcDom;
+      document.getElementById('stat-vol').textContent = fmt(totalVol);
+      document.getElementById('stat-ethbtc').textContent = ethBtc;
+    }
+
+    // ── FETCH NEWS ──
+    async function fetchNews() {
+      try {
+        const resp = await fetch(
+          'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest'
+        );
+        if (!resp.ok) throw new Error('CryptoCompare HTTP ' + resp.status);
+        const json = await resp.json();
+        renderNews(json.Data || []);
+      } catch (err) {
+        console.error('News fetch error:', err);
+        document.getElementById('news-feed').innerHTML =
+          '<div class="loading-msg">Failed to load news. Will retry...</div>';
+      }
+    }
+
+    // ── RENDER NEWS ──
+    function renderNews(articles) {
+      const feed = document.getElementById('news-feed');
+      if (!articles.length) {
+        feed.innerHTML = '<div class="loading-msg">No news available</div>';
+        return;
+      }
+      feed.innerHTML = articles.slice(0, 30).map(a => {
+        const cats = (a.categories || '').split('|').filter(Boolean).slice(0, 3);
+        const catHtml = cats.map(c =>
+          `<span class="news-cat">${c.trim()}</span>`
+        ).join('<span class="news-cat" style="color:var(--muted)">·</span>');
+        const body = a.body ? a.body.substring(0, 120) : '';
+        return `<a class="news-item" href="${a.url}" target="_blank" rel="noopener">` +
+          `<div class="news-meta">` +
+            `<span class="news-time">${timeAgo(a.published_on)}</span>` +
+            `<span class="news-source">${a.source || ''}</span>` +
+            `<span class="news-categories">${catHtml}</span>` +
+          `</div>` +
+          `<div class="news-title">${a.title || ''}</div>` +
+          (body ? `<div class="news-body">${body}</div>` : '') +
+          `</a>`;
+      }).join('');
+    }
+
+    // ── REFRESH ALL ──
+    function refreshAll() {
+      fetchMarketData();
+      fetchNews();
+    }
+
+    // ── KEYBOARD: R to refresh ──
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        e.preventDefault();
+        refreshAll();
+      }
+    });
+
+    // ── VISIBILITY CHANGE: auto-refresh ──
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) refreshAll();
+    });
+
+    // ── INIT ──
+    updateClock();
+    setInterval(updateClock, 1000);
+    refreshAll();
+    setInterval(fetchMarketData, 60000);
+    setInterval(fetchNews, 120000);
+  </script>
+</body>
+</html>
