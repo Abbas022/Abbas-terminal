@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ABBAS TERMINAL | Crypto Markets</title>
+  <title>ABBAS TERMINAL | News & Predictions</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -33,65 +33,73 @@
     /* ── SHELL GRID ── */
     #terminal {
       display: grid;
-      grid-template-rows: 32px 1fr 28px;
+      grid-template-rows: auto 1fr 28px;
       height: 100vh;
       gap: 1px;
       background: var(--border);
     }
 
-    /* ── TICKER BAR ── */
-    .ticker-bar {
+    /* ── HEADER ── */
+    .header-bar {
       background: var(--panel);
-      overflow: hidden;
-      position: relative;
+      padding: 8px 16px;
       display: flex;
       align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
-    .ticker-track {
-      display: flex;
-      white-space: nowrap;
-      animation: scroll-ticker 60s linear infinite;
-    }
-
-    .ticker-track:hover { animation-play-state: paused; }
-
-    @keyframes scroll-ticker {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    .ticker-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 18px;
-      font-size: 11px;
-      flex-shrink: 0;
-    }
-
-    .ticker-item .symbol {
+    .header-brand {
       color: var(--amber);
       font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 2px;
+      white-space: nowrap;
     }
 
-    .ticker-item .price { color: var(--text); }
-
-    .ticker-item .change {
-      font-weight: 600;
-      font-size: 10px;
-    }
-
-    .ticker-sep {
+    .header-tagline {
       color: var(--muted);
-      padding: 0 4px;
-      flex-shrink: 0;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .header-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+
+    .filter-chip {
+      padding: 3px 10px;
+      font-size: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border: 1px solid var(--amber-dim);
+      border-radius: 3px;
+      background: transparent;
+      color: var(--amber-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .filter-chip.active {
+      background: var(--amber);
+      border-color: var(--amber);
+      color: #000;
     }
 
     /* ── MAIN CONTENT ── */
     .main-grid {
       display: grid;
-      grid-template-columns: 1fr 1.2fr 1fr;
+      grid-template-columns: 3fr 2fr;
       gap: 1px;
       background: var(--border);
       min-height: 0;
@@ -139,95 +147,51 @@
     .panel-body::-webkit-scrollbar-track { background: var(--panel); }
     .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* ── MARKET TABLE ── */
-    .market-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-    }
-
-    .market-table th {
-      position: sticky;
-      top: 0;
-      background: var(--header-bg);
-      padding: 6px 8px;
-      text-align: right;
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border);
-      z-index: 1;
-    }
-
-    .market-table th:first-child { text-align: left; }
-
-    .market-table td {
-      padding: 5px 8px;
-      text-align: right;
-      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
-      transition: background 0.3s;
-    }
-
-    .market-table td:first-child {
-      text-align: left;
-      font-weight: 600;
-    }
-
-    .market-table tr:hover td { background: rgba(255, 152, 0, 0.04); }
-
-    .coin-rank {
-      color: var(--muted);
-      font-size: 10px;
-      margin-right: 4px;
-    }
-
-    .coin-sym {
-      color: var(--amber);
-      font-weight: 700;
-    }
-
-    .coin-name {
-      color: var(--muted);
-      font-size: 10px;
-      margin-left: 4px;
-    }
-
     /* ── NEWS FEED ── */
     .news-item {
       padding: 10px 12px;
       border-bottom: 1px solid rgba(26, 32, 53, 0.5);
       cursor: pointer;
       transition: background 0.2s;
-      display: block;
+      display: flex;
+      gap: 10px;
       text-decoration: none;
       color: inherit;
     }
 
     .news-item:hover { background: rgba(255, 152, 0, 0.04); }
 
+    .news-thumb {
+      width: 80px;
+      height: 54px;
+      object-fit: cover;
+      border-radius: 3px;
+      flex-shrink: 0;
+      background: var(--border);
+    }
+
+    .news-content { flex: 1; min-width: 0; }
+
     .news-meta {
       display: flex;
       gap: 8px;
       font-size: 10px;
       margin-bottom: 4px;
+      align-items: center;
     }
 
     .news-time { color: var(--blue); }
     .news-source { color: var(--muted); }
 
-    .news-categories {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-
-    .news-cat {
-      color: var(--amber-dim);
+    .news-badge {
       font-size: 9px;
+      font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: rgba(255, 152, 0, 0.15);
+      color: var(--amber);
     }
 
     .news-title {
@@ -248,73 +212,97 @@
       overflow: hidden;
     }
 
-    /* ── RIGHT COLUMN ── */
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-      background: var(--border);
-      min-height: 0;
+    /* ── PREDICTION MARKETS ── */
+    .market-card {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
+      cursor: pointer;
+      transition: background 0.2s;
+      display: block;
+      text-decoration: none;
+      color: inherit;
     }
 
-    .right-col .panel { flex: 1; min-height: 0; }
-    .right-col .panel-stats { flex: 0 0 auto; }
+    .market-card:hover { background: rgba(255, 152, 0, 0.04); }
 
-    /* ── MOVERS TABLE ── */
-    .movers-section {
-      padding: 4px 0;
-    }
-
-    .movers-label {
-      padding: 4px 10px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .movers-label.gainers { color: var(--green); }
-    .movers-label.losers { color: var(--red); }
-
-    .mover-row {
+    .market-card-header {
       display: flex;
       justify-content: space-between;
-      padding: 3px 10px;
-      font-size: 11px;
-      transition: background 0.2s;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
-    .mover-row:hover { background: rgba(255, 152, 0, 0.04); }
-
-    .mover-sym { font-weight: 600; color: var(--amber); min-width: 50px; }
-    .mover-price { color: var(--text); min-width: 80px; text-align: right; }
-    .mover-change { font-weight: 600; min-width: 65px; text-align: right; }
-
-    /* ── STATS ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      background: var(--border);
-    }
-
-    .stat-cell {
-      background: var(--panel);
-      padding: 8px 10px;
-    }
-
-    .stat-label {
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 2px;
-    }
-
-    .stat-value {
-      font-size: 13px;
-      font-weight: 700;
+    .market-question {
+      font-size: 12px;
       color: var(--text);
+      line-height: 1.4;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .market-badge {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: rgba(255, 152, 0, 0.15);
+      color: var(--amber);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .market-prob-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .market-prob-label {
+      font-size: 10px;
+      font-weight: 600;
+      width: 28px;
+      flex-shrink: 0;
+    }
+
+    .market-prob-label.yes { color: var(--green); }
+    .market-prob-label.no { color: var(--red); }
+
+    .market-prob-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .market-prob-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+
+    .market-prob-bar.yes { background: var(--green); }
+    .market-prob-bar.no { background: var(--red); }
+
+    .market-prob-pct {
+      font-size: 11px;
+      font-weight: 700;
+      width: 40px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .market-prob-pct.yes { color: var(--green); }
+    .market-prob-pct.no { color: var(--red); }
+
+    .market-volume {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
     }
 
     /* ── STATUS BAR ── */
@@ -379,20 +367,6 @@
       margin-left: 4px;
     }
 
-    /* ── PRICE FLASH ── */
-    @keyframes flash-green {
-      0% { background: rgba(0, 230, 118, 0.25); }
-      100% { background: transparent; }
-    }
-
-    @keyframes flash-red {
-      0% { background: rgba(255, 23, 68, 0.25); }
-      100% { background: transparent; }
-    }
-
-    .flash-up td { animation: flash-green 0.8s ease-out; }
-    .flash-down td { animation: flash-red 0.8s ease-out; }
-
     /* ── BOOT OVERLAY ── */
     #boot-overlay {
       position: fixed;
@@ -446,35 +420,12 @@
       50% { opacity: 0; }
     }
 
-    /* ── POSITIVE / NEGATIVE ── */
-    .pos { color: var(--green); }
-    .neg { color: var(--red); }
-
     /* ── LOADING ── */
     .loading-msg {
       color: var(--muted);
       font-size: 11px;
       padding: 20px 12px;
       text-align: center;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
-      #terminal {
-        grid-template-rows: 32px 1fr 28px;
-        overflow-y: auto;
-      }
-
-      .main-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        min-height: auto;
-      }
-
-      .panel { min-height: 300px; }
-      .right-col { min-height: 400px; }
-
-      html, body { overflow: auto; }
     }
 
     /* ── KEYBOARD HINT ── */
@@ -492,6 +443,26 @@
       font-size: 10px;
       color: var(--text);
     }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      #terminal {
+        grid-template-rows: auto 1fr 28px;
+        overflow-y: auto;
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        min-height: auto;
+      }
+
+      .panel { min-height: 400px; }
+
+      html, body { overflow: auto; }
+
+      .header-filters { margin-left: 0; }
+    }
   </style>
 </head>
 <body>
@@ -499,92 +470,44 @@
   <!-- BOOT OVERLAY -->
   <div id="boot-overlay">
     <div class="boot-title">ABBAS TERMINAL</div>
-    <div class="boot-line" style="animation-delay: 0.2s">Initializing market data feeds...</div>
-    <div class="boot-line" style="animation-delay: 0.6s">Connecting to CoinGecko API...</div>
-    <div class="boot-line" style="animation-delay: 1.0s">Connecting to CryptoCompare API...</div>
+    <div class="boot-line" style="animation-delay: 0.2s">Initializing news aggregation feeds...</div>
+    <div class="boot-line" style="animation-delay: 0.6s">Connecting to RSS sources...</div>
+    <div class="boot-line" style="animation-delay: 1.0s">Connecting to Polymarket API...</div>
     <div class="boot-line" style="animation-delay: 1.4s">Loading terminal<span class="boot-cursor"></span></div>
   </div>
 
   <!-- TERMINAL -->
   <div id="terminal">
 
-    <!-- TICKER BAR -->
-    <div class="ticker-bar">
-      <div class="ticker-track" id="ticker-track">
-        <span class="loading-msg" style="padding: 0 20px;">Loading market data...</span>
-      </div>
+    <!-- HEADER -->
+    <div class="header-bar">
+      <span class="header-brand">ABBAS TERMINAL</span>
+      <span class="header-tagline">News & Prediction Markets</span>
+      <div class="header-filters" id="header-filters"></div>
     </div>
 
-    <!-- MAIN 3-COLUMN -->
+    <!-- MAIN 2-COLUMN -->
     <div class="main-grid">
 
-      <!-- LEFT: MARKET OVERVIEW -->
-      <div class="panel">
-        <div class="panel-header">
-          Market Overview
-          <span class="hint">Top 10 by Market Cap</span>
-        </div>
-        <div class="panel-body">
-          <table class="market-table" id="market-table">
-            <thead>
-              <tr>
-                <th>Coin</th>
-                <th>Price</th>
-                <th>24h %</th>
-                <th>7d %</th>
-                <th>MCap</th>
-                <th>Vol 24h</th>
-              </tr>
-            </thead>
-            <tbody id="market-tbody">
-              <tr><td colspan="6" class="loading-msg">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- CENTER: NEWS FEED -->
+      <!-- LEFT: NEWS FEED (~60%) -->
       <div class="panel">
         <div class="panel-header">
           News Feed
-          <span class="hint">CryptoCompare</span>
+          <span class="hint" id="news-count"></span>
         </div>
         <div class="panel-body" id="news-feed">
           <div class="loading-msg">Loading news...</div>
         </div>
       </div>
 
-      <!-- RIGHT: MOVERS + STATS -->
-      <div class="right-col">
-        <div class="panel">
-          <div class="panel-header">
-            Top Movers
-            <span class="hint">24h Change</span>
-          </div>
-          <div class="panel-body" id="movers-body">
-            <div class="loading-msg">Loading...</div>
-          </div>
+      <!-- RIGHT: PREDICTION MARKETS (~40%) -->
+      <div class="panel">
+        <div class="panel-header">
+          Prediction Markets
+          <span class="hint">Polymarket</span>
         </div>
-        <div class="panel panel-stats">
-          <div class="panel-header">Market Stats</div>
-          <div class="stats-grid" id="stats-grid">
-            <div class="stat-cell">
-              <div class="stat-label">Total MCap</div>
-              <div class="stat-value" id="stat-mcap">—</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-label">BTC Dominance</div>
-              <div class="stat-value" id="stat-btcdom">—</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-label">24h Volume</div>
-              <div class="stat-value" id="stat-vol">—</div>
-            </div>
-            <div class="stat-cell">
-              <div class="stat-label">ETH/BTC</div>
-              <div class="stat-value" id="stat-ethbtc">—</div>
-            </div>
-          </div>
+        <div class="panel-body" id="markets-feed">
+          <div class="loading-msg">Loading markets...</div>
         </div>
       </div>
 
@@ -594,58 +517,140 @@
     <div class="status-bar">
       <div class="status-left">
         <span class="status-brand">ABBAS TERMINAL</span>
-        <span class="status-tagline">Encrypted financial rails for the world</span>
         <span class="kb-hint"><kbd>R</kbd> refresh</span>
       </div>
       <div class="status-right">
         <span class="status-update" id="status-update">LAST UPDATE: —</span>
         <span class="status-clock" id="status-clock">--:--:--</span>
-        <span><span class="status-dot" id="status-dot"></span><span class="status-label" id="status-label">CONNECTED</span></span>
+        <span><span class="status-dot" id="status-dot"></span><span class="status-label" id="status-label">LIVE</span></span>
       </div>
     </div>
 
   </div>
 
   <script>
+    // ── CATEGORIES & FEEDS ──
+    const CATEGORIES = [
+      'All', 'Middle East', 'World', 'US Politics', 'Sports', 'Crypto', 'Tech', 'Business', 'Science'
+    ];
+
+    const RSS_FEEDS = {
+      'Middle East': [
+        { url: 'https://feeds.bbci.co.uk/news/world/middle_east/rss.xml', source: 'BBC' },
+        { url: 'https://rss.nytimes.com/services/xml/rss/nyt/MiddleEast.xml', source: 'NYT' }
+      ],
+      'World': [
+        { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', source: 'BBC' }
+      ],
+      'US Politics': [
+        { url: 'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml', source: 'NYT' }
+      ],
+      'Sports': [
+        { url: 'https://feeds.bbci.co.uk/sport/rss.xml', source: 'BBC' }
+      ],
+      'Crypto': [
+        { url: 'https://cointelegraph.com/rss', source: 'CoinTelegraph' },
+        { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', source: 'CoinDesk' }
+      ],
+      'Tech': [
+        { url: 'https://techcrunch.com/feed/', source: 'TechCrunch' },
+        { url: 'https://feeds.arstechnica.com/arstechnica/index', source: 'Ars Technica' }
+      ],
+      'Business': [
+        { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC' }
+      ],
+      'Science': [
+        { url: 'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', source: 'BBC' }
+      ]
+    };
+
+    // Keyword rules for categorizing Polymarket questions
+    const MARKET_KEYWORDS = {
+      'Middle East': [
+        'iran', 'iraq', 'israel', 'gaza', 'palestine', 'hamas', 'hezbollah', 'lebanon',
+        'syria', 'yemen', 'houthi', 'saudi', 'netanyahu', 'west bank', 'middle east',
+        'qatar', 'uae', 'dubai', 'jordan', 'egypt', 'sinai', 'tel aviv', 'jerusalem',
+        'idf', 'ceasefire'
+      ],
+      'World': [
+        'ukraine', 'russia', 'china', 'nato', 'europe', 'eu ', 'united nations', 'un ',
+        'north korea', 'kim jong', 'india', 'modi', 'putin', 'zelensky', 'macron',
+        'africa', 'latin america', 'taiwan', 'world war', 'sanctions', 'g7', 'g20',
+        'migration', 'refugee', 'tariff', 'trade war', 'sovereignty'
+      ],
+      'US Politics': [
+        'trump', 'biden', 'democrat', 'republican', 'congress', 'senate', 'house of rep',
+        'gop', 'presidential', 'election', 'white house', 'supreme court', 'scotus',
+        'governor', 'electoral', 'primary', 'inaugur', 'impeach', 'poll', 'approval rating',
+        'dnc', 'rnc', 'vice president', 'kamala', 'desantis', 'newsom', 'vance',
+        'cabinet', 'executive order', 'legislation'
+      ],
+      'Sports': [
+        'nba', 'nfl', 'mlb', 'nhl', 'premier league', 'champions league', 'world cup',
+        'super bowl', 'playoffs', 'finals', 'mvp', 'soccer', 'football', 'basketball',
+        'baseball', 'hockey', 'tennis', 'golf', 'f1', 'formula 1', 'olympics',
+        'ufc', 'mma', 'boxing', 'cricket', 'la liga', 'serie a', 'bundesliga',
+        'win the', 'championship', 'match', 'game', 'season', 'player', 'coach',
+        'epl', 'wnba', 'pga', 'grand slam'
+      ],
+      'Crypto': [
+        'bitcoin', 'btc', 'ethereum', 'eth', 'crypto', 'blockchain', 'defi', 'nft',
+        'solana', 'sol', 'dogecoin', 'doge', 'altcoin', 'token', 'coinbase', 'binance',
+        'sec crypto', 'stablecoin', 'web3', 'mining', 'halving', 'memecoin', 'xrp',
+        'ripple', 'cardano'
+      ],
+      'Tech': [
+        'ai ', 'artificial intelligence', 'openai', 'chatgpt', 'google', 'apple',
+        'microsoft', 'meta', 'amazon', 'tesla', 'elon musk', 'spacex', 'twitter',
+        'tiktok', 'social media', 'silicon valley', 'startup', 'software', 'app',
+        'cyber', 'robot', 'autonomous', 'gpt', 'machine learning', 'nvidia',
+        'anthropic', 'gemini', 'self-driving', 'tech'
+      ],
+      'Business': [
+        'stock', 'market', 'fed ', 'federal reserve', 'interest rate', 'inflation',
+        'recession', 'gdp', 'economy', 'ipo', 's&p', 'nasdaq', 'dow jones',
+        'earnings', 'revenue', 'profit', 'merger', 'acquisition', 'layoff',
+        'unemployment', 'cpi', 'treasury', 'wall street', 'bond'
+      ],
+      'Science': [
+        'climate', 'nasa', 'space', 'mars', 'moon', 'vaccine', 'virus', 'pandemic',
+        'scientific', 'research', 'discovery', 'physics', 'biology', 'environment',
+        'carbon', 'emission', 'renewable', 'energy', 'nuclear', 'earthquake',
+        'hurricane', 'weather', 'species'
+      ]
+    };
+
     // ── STATE ──
-    let prevPrices = {};
-    let allCoins = [];
+    let activeCategories = new Set(['All']);
+    let allNews = [];
+    let allMarkets = [];
     let bootDone = false;
+    let newsLoaded = false;
+    let marketsLoaded = false;
 
     // ── HELPERS ──
-    function fmt(n, decimals) {
-      if (n == null) return '—';
-      if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
-      if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
-      if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-      if (n >= 1e3) return '$' + (n / 1e3).toFixed(2) + 'K';
-      return '$' + n.toFixed(decimals != null ? decimals : 2);
-    }
-
-    function fmtPrice(n) {
-      if (n == null) return '—';
-      if (n >= 1) return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (n >= 0.01) return '$' + n.toFixed(4);
-      return '$' + n.toFixed(6);
-    }
-
-    function fmtPct(n) {
-      if (n == null) return '—';
-      const sign = n >= 0 ? '+' : '';
-      return sign + n.toFixed(2) + '%';
-    }
-
-    function pctClass(n) {
-      if (n == null) return '';
-      return n >= 0 ? 'pos' : 'neg';
-    }
-
-    function timeAgo(ts) {
-      const diff = Math.floor((Date.now() / 1000) - ts);
+    function timeAgo(dateStr) {
+      const date = new Date(dateStr);
+      const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+      if (diff < 0) return 'just now';
       if (diff < 60) return diff + 's ago';
       if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
       if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
       return Math.floor(diff / 86400) + 'd ago';
+    }
+
+    function fmtVolume(n) {
+      if (n == null || isNaN(n)) return '$0';
+      if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+      if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+      if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+      return '$' + Math.round(n);
+    }
+
+    function stripHtml(html) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent || tmp.innerText || '';
     }
 
     function setConnected(ok) {
@@ -653,7 +658,7 @@
       const label = document.getElementById('status-label');
       if (ok) {
         dot.className = 'status-dot';
-        label.textContent = 'CONNECTED';
+        label.textContent = 'LIVE';
       } else {
         dot.className = 'status-dot disconnected';
         label.textContent = 'OFFLINE';
@@ -661,185 +666,260 @@
     }
 
     function updateClock() {
-      const now = new Date();
       document.getElementById('status-clock').textContent =
-        now.toLocaleTimeString('en-US', { hour12: false });
+        new Date().toLocaleTimeString('en-US', { hour12: false });
     }
 
     function updateTimestamp() {
-      const now = new Date();
       document.getElementById('status-update').textContent =
-        'LAST UPDATE: ' + now.toLocaleTimeString('en-US', { hour12: false });
+        'LAST UPDATE: ' + new Date().toLocaleTimeString('en-US', { hour12: false });
     }
 
-    // ── FETCH MARKET DATA ──
-    async function fetchMarketData() {
-      try {
-        const resp = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?' +
-          'vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false&' +
-          'price_change_percentage=24h,7d'
-        );
-        if (!resp.ok) throw new Error('CoinGecko HTTP ' + resp.status);
-        const data = await resp.json();
-        allCoins = data;
-        renderTicker(data);
-        renderMarketTable(data.slice(0, 10));
-        renderMovers(data);
-        renderStats(data);
-        updateTimestamp();
-        setConnected(true);
+    function categorizeMarket(question) {
+      const q = question.toLowerCase();
+      const matched = [];
+      for (const [cat, keywords] of Object.entries(MARKET_KEYWORDS)) {
+        for (const kw of keywords) {
+          if (q.includes(kw)) {
+            matched.push(cat);
+            break;
+          }
+        }
+      }
+      return matched.length > 0 ? matched : ['World'];
+    }
 
-        if (!bootDone) {
-          bootDone = true;
-          const overlay = document.getElementById('boot-overlay');
-          overlay.classList.add('fade-out');
-          setTimeout(() => overlay.style.display = 'none', 700);
-        }
-      } catch (err) {
-        console.error('Market fetch error:', err);
-        setConnected(false);
-        if (!bootDone) {
-          bootDone = true;
-          const overlay = document.getElementById('boot-overlay');
-          overlay.classList.add('fade-out');
-          setTimeout(() => overlay.style.display = 'none', 700);
-        }
+    function dismissBoot() {
+      if (!bootDone && newsLoaded && marketsLoaded) {
+        bootDone = true;
+        const overlay = document.getElementById('boot-overlay');
+        overlay.classList.add('fade-out');
+        setTimeout(() => overlay.style.display = 'none', 700);
       }
     }
 
-    // ── RENDER TICKER ──
-    function renderTicker(coins) {
-      const track = document.getElementById('ticker-track');
-      let html = '';
-      const items = coins.map(c => {
-        const pct = c.price_change_percentage_24h;
-        const cls = pctClass(pct);
-        return `<span class="ticker-item">` +
-          `<span class="symbol">${c.symbol.toUpperCase()}</span>` +
-          `<span class="price">${fmtPrice(c.current_price)}</span>` +
-          `<span class="change ${cls}">${fmtPct(pct)}</span>` +
-          `</span><span class="ticker-sep">|</span>`;
-      }).join('');
-      // Duplicate for seamless loop
-      track.innerHTML = items + items;
-    }
+    // ── CATEGORY FILTERS ──
+    function initFilters() {
+      const container = document.getElementById('header-filters');
+      container.innerHTML = CATEGORIES.map(cat =>
+        `<button class="filter-chip${cat === 'All' ? ' active' : ''}" data-category="${cat}">${cat}</button>`
+      ).join('');
 
-    // ── RENDER MARKET TABLE ──
-    function renderMarketTable(coins) {
-      const tbody = document.getElementById('market-tbody');
-      const rows = coins.map((c, i) => {
-        const pct24 = c.price_change_percentage_24h;
-        const pct7d = c.price_change_percentage_7d_in_currency;
-        const prev = prevPrices[c.id];
-        let flashClass = '';
-        if (prev != null && c.current_price !== prev) {
-          flashClass = c.current_price > prev ? 'flash-up' : 'flash-down';
+      container.addEventListener('click', (e) => {
+        const chip = e.target.closest('.filter-chip');
+        if (!chip) return;
+        const cat = chip.dataset.category;
+
+        if (cat === 'All') {
+          activeCategories = new Set(['All']);
+        } else {
+          activeCategories.delete('All');
+          if (activeCategories.has(cat)) {
+            activeCategories.delete(cat);
+          } else {
+            activeCategories.add(cat);
+          }
+          if (activeCategories.size === 0) {
+            activeCategories = new Set(['All']);
+          }
         }
-        prevPrices[c.id] = c.current_price;
-        return `<tr class="${flashClass}">` +
-          `<td><span class="coin-rank">${i + 1}</span><span class="coin-sym">${c.symbol.toUpperCase()}</span><span class="coin-name">${c.name}</span></td>` +
-          `<td>${fmtPrice(c.current_price)}</td>` +
-          `<td class="${pctClass(pct24)}">${fmtPct(pct24)}</td>` +
-          `<td class="${pctClass(pct7d)}">${fmtPct(pct7d)}</td>` +
-          `<td>${fmt(c.market_cap)}</td>` +
-          `<td>${fmt(c.total_volume)}</td>` +
-          `</tr>`;
-      }).join('');
-      tbody.innerHTML = rows;
+
+        // Update chip styles
+        container.querySelectorAll('.filter-chip').forEach(c => {
+          c.classList.toggle('active', activeCategories.has(c.dataset.category));
+        });
+
+        renderNews();
+        renderMarkets();
+      });
     }
 
-    // ── RENDER MOVERS ──
-    function renderMovers(coins) {
-      const body = document.getElementById('movers-body');
-      const sorted = [...coins].sort((a, b) =>
-        (b.price_change_percentage_24h || 0) - (a.price_change_percentage_24h || 0)
-      );
-      const gainers = sorted.slice(0, 5);
-      const losers = sorted.slice(-5).reverse();
-
-      let html = '<div class="movers-section">';
-      html += '<div class="movers-label gainers">▲ Gainers</div>';
-      gainers.forEach(c => {
-        const pct = c.price_change_percentage_24h;
-        html += `<div class="mover-row">` +
-          `<span class="mover-sym">${c.symbol.toUpperCase()}</span>` +
-          `<span class="mover-price">${fmtPrice(c.current_price)}</span>` +
-          `<span class="mover-change pos">${fmtPct(pct)}</span></div>`;
-      });
-      html += '</div><div class="movers-section">';
-      html += '<div class="movers-label losers">▼ Losers</div>';
-      losers.forEach(c => {
-        const pct = c.price_change_percentage_24h;
-        html += `<div class="mover-row">` +
-          `<span class="mover-sym">${c.symbol.toUpperCase()}</span>` +
-          `<span class="mover-price">${fmtPrice(c.current_price)}</span>` +
-          `<span class="mover-change neg">${fmtPct(pct)}</span></div>`;
-      });
-      html += '</div>';
-      body.innerHTML = html;
-    }
-
-    // ── RENDER STATS ──
-    function renderStats(coins) {
-      const totalMcap = coins.reduce((s, c) => s + (c.market_cap || 0), 0);
-      const totalVol = coins.reduce((s, c) => s + (c.total_volume || 0), 0);
-      const btc = coins.find(c => c.id === 'bitcoin');
-      const eth = coins.find(c => c.id === 'ethereum');
-      const btcDom = btc ? ((btc.market_cap / totalMcap) * 100).toFixed(1) + '%' : '—';
-      const ethBtc = (btc && eth) ? (eth.current_price / btc.current_price).toFixed(6) : '—';
-
-      document.getElementById('stat-mcap').textContent = fmt(totalMcap);
-      document.getElementById('stat-btcdom').textContent = btcDom;
-      document.getElementById('stat-vol').textContent = fmt(totalVol);
-      document.getElementById('stat-ethbtc').textContent = ethBtc;
+    function matchesFilter(categories) {
+      if (activeCategories.has('All')) return true;
+      return categories.some(c => activeCategories.has(c));
     }
 
     // ── FETCH NEWS ──
-    async function fetchNews() {
+    async function fetchSingleFeed(feedUrl, source, category) {
       try {
-        const resp = await fetch(
-          'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&sortOrder=latest'
-        );
-        if (!resp.ok) throw new Error('CryptoCompare HTTP ' + resp.status);
-        const json = await resp.json();
-        renderNews(json.Data || []);
-      } catch (err) {
-        console.error('News fetch error:', err);
-        document.getElementById('news-feed').innerHTML =
-          '<div class="loading-msg">Failed to load news. Will retry...</div>';
+        const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
+        const resp = await fetch(url);
+        if (!resp.ok) return [];
+        const data = await resp.json();
+        if (data.status !== 'ok' || !data.items) return [];
+        return data.items.map(item => ({
+          title: item.title || '',
+          link: item.link || '',
+          description: stripHtml(item.description || '').substring(0, 200),
+          thumbnail: item.thumbnail || item.enclosure?.link || '',
+          pubDate: item.pubDate || '',
+          source: source,
+          category: category
+        }));
+      } catch (e) {
+        console.error(`Feed error (${source}):`, e);
+        return [];
       }
     }
 
+    async function fetchAllNews() {
+      const promises = [];
+      for (const [category, feeds] of Object.entries(RSS_FEEDS)) {
+        for (const feed of feeds) {
+          promises.push(fetchSingleFeed(feed.url, feed.source, category));
+        }
+      }
+      const results = await Promise.allSettled(promises);
+      const articles = [];
+      const seen = new Set();
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          for (const article of result.value) {
+            // Deduplicate by title
+            const key = article.title.toLowerCase().trim();
+            if (key && !seen.has(key)) {
+              seen.add(key);
+              articles.push(article);
+            }
+          }
+        }
+      }
+      // Sort by date, newest first
+      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      allNews = articles;
+      newsLoaded = true;
+      renderNews();
+      updateTimestamp();
+      setConnected(true);
+      dismissBoot();
+    }
+
     // ── RENDER NEWS ──
-    function renderNews(articles) {
+    function renderNews() {
       const feed = document.getElementById('news-feed');
-      if (!articles.length) {
-        feed.innerHTML = '<div class="loading-msg">No news available</div>';
+      const countEl = document.getElementById('news-count');
+      const filtered = allNews.filter(a => matchesFilter([a.category]));
+      countEl.textContent = filtered.length + ' articles';
+
+      if (!filtered.length) {
+        feed.innerHTML = '<div class="loading-msg">No articles for selected categories</div>';
         return;
       }
-      feed.innerHTML = articles.slice(0, 30).map(a => {
-        const cats = (a.categories || '').split('|').filter(Boolean).slice(0, 3);
-        const catHtml = cats.map(c =>
-          `<span class="news-cat">${c.trim()}</span>`
-        ).join('<span class="news-cat" style="color:var(--muted)">·</span>');
-        const body = a.body ? a.body.substring(0, 120) : '';
-        return `<a class="news-item" href="${a.url}" target="_blank" rel="noopener">` +
-          `<div class="news-meta">` +
-            `<span class="news-time">${timeAgo(a.published_on)}</span>` +
-            `<span class="news-source">${a.source || ''}</span>` +
-            `<span class="news-categories">${catHtml}</span>` +
+
+      feed.innerHTML = filtered.map(a => {
+        const thumbHtml = a.thumbnail
+          ? `<img class="news-thumb" src="${a.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">`
+          : '';
+        return `<a class="news-item" href="${a.link}" target="_blank" rel="noopener">` +
+          thumbHtml +
+          `<div class="news-content">` +
+            `<div class="news-meta">` +
+              `<span class="news-time">${timeAgo(a.pubDate)}</span>` +
+              `<span class="news-source">${a.source}</span>` +
+              `<span class="news-badge">${a.category}</span>` +
+            `</div>` +
+            `<div class="news-title">${a.title}</div>` +
+            (a.description ? `<div class="news-body">${a.description}</div>` : '') +
           `</div>` +
-          `<div class="news-title">${a.title || ''}</div>` +
-          (body ? `<div class="news-body">${body}</div>` : '') +
+          `</a>`;
+      }).join('');
+    }
+
+    // ── FETCH PREDICTION MARKETS ──
+    const POLYMARKET_URL = 'https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=100&order=volume24hr&ascending=false';
+    const CORS_PROXIES = [
+      (url) => url, // try direct first
+      (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+      (url) => 'https://corsproxy.io/?' + encodeURIComponent(url),
+    ];
+
+    function parseMarkets(data) {
+      return data
+        .filter(m => m.question && m.outcomePrices)
+        .map(m => {
+          let prices = [];
+          try { prices = JSON.parse(m.outcomePrices); } catch(e) {}
+          const yesPrice = prices[0] ? parseFloat(prices[0]) : 0;
+          const noPrice = prices[1] ? parseFloat(prices[1]) : 0;
+          return {
+            question: m.question,
+            slug: m.slug || '',
+            yesPrice: yesPrice,
+            noPrice: noPrice,
+            volume: parseFloat(m.volume24hr) || 0,
+            totalVolume: parseFloat(m.volume) || 0,
+            categories: categorizeMarket(m.question)
+          };
+        });
+    }
+
+    async function fetchMarkets() {
+      for (const proxyFn of CORS_PROXIES) {
+        try {
+          const url = proxyFn(POLYMARKET_URL);
+          const resp = await fetch(url);
+          if (!resp.ok) continue;
+          const data = await resp.json();
+          if (!Array.isArray(data) || data.length === 0) continue;
+          allMarkets = parseMarkets(data);
+          marketsLoaded = true;
+          renderMarkets();
+          setConnected(true);
+          dismissBoot();
+          return;
+        } catch (err) {
+          console.warn('Markets proxy attempt failed:', err.message);
+        }
+      }
+      console.error('All Polymarket fetch attempts failed');
+      marketsLoaded = true;
+      dismissBoot();
+      document.getElementById('markets-feed').innerHTML =
+        '<div class="loading-msg">Failed to load markets. Will retry...</div>';
+    }
+
+    // ── RENDER MARKETS ──
+    function renderMarkets() {
+      const feed = document.getElementById('markets-feed');
+      const filtered = allMarkets.filter(m => matchesFilter(m.categories));
+
+      if (!filtered.length) {
+        feed.innerHTML = '<div class="loading-msg">No markets for selected categories</div>';
+        return;
+      }
+
+      feed.innerHTML = filtered.map(m => {
+        const yesPct = Math.round(m.yesPrice * 100);
+        const noPct = Math.round(m.noPrice * 100);
+        const polyUrl = m.slug
+          ? `https://polymarket.com/event/${m.slug}`
+          : 'https://polymarket.com';
+        const badge = m.categories[0] || 'World';
+
+        return `<a class="market-card" href="${polyUrl}" target="_blank" rel="noopener">` +
+          `<div class="market-card-header">` +
+            `<div class="market-question">${m.question}</div>` +
+            `<span class="market-badge">${badge}</span>` +
+          `</div>` +
+          `<div class="market-prob-row">` +
+            `<span class="market-prob-label yes">YES</span>` +
+            `<div class="market-prob-bar-bg"><div class="market-prob-bar yes" style="width:${yesPct}%"></div></div>` +
+            `<span class="market-prob-pct yes">${yesPct}%</span>` +
+          `</div>` +
+          `<div class="market-prob-row">` +
+            `<span class="market-prob-label no">NO</span>` +
+            `<div class="market-prob-bar-bg"><div class="market-prob-bar no" style="width:${noPct}%"></div></div>` +
+            `<span class="market-prob-pct no">${noPct}%</span>` +
+          `</div>` +
+          `<div class="market-volume">Vol 24h: ${fmtVolume(m.volume)} · Total: ${fmtVolume(m.totalVolume)}</div>` +
           `</a>`;
       }).join('');
     }
 
     // ── REFRESH ALL ──
     function refreshAll() {
-      fetchMarketData();
-      fetchNews();
+      fetchAllNews();
+      fetchMarkets();
     }
 
     // ── KEYBOARD: R to refresh ──
@@ -857,11 +937,12 @@
     });
 
     // ── INIT ──
+    initFilters();
     updateClock();
     setInterval(updateClock, 1000);
     refreshAll();
-    setInterval(fetchMarketData, 60000);
-    setInterval(fetchNews, 120000);
+    setInterval(fetchAllNews, 120000);
+    setInterval(fetchMarkets, 60000);
   </script>
 </body>
 </html>
