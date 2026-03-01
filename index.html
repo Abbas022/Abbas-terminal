@@ -690,7 +690,7 @@
     }
 
     function dismissBoot() {
-      if (!bootDone && newsLoaded && marketsLoaded) {
+      if (!bootDone && (newsLoaded || marketsLoaded)) {
         bootDone = true;
         const overlay = document.getElementById('boot-overlay');
         overlay.classList.add('fade-out');
@@ -763,35 +763,42 @@
     }
 
     async function fetchAllNews() {
+      const seen = new Set();
+      // Deduplicate helper
+      function mergeArticles(newArticles) {
+        let added = false;
+        for (const article of newArticles) {
+          const key = article.title.toLowerCase().trim();
+          if (key && !seen.has(key)) {
+            seen.add(key);
+            allNews.push(article);
+            added = true;
+          }
+        }
+        if (added) {
+          allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+          newsLoaded = true;
+          renderNews();
+          updateTimestamp();
+          setConnected(true);
+          dismissBoot();
+        }
+      }
+
+      // Clear previous articles for a full refresh
+      allNews = [];
+      seen.clear();
+
+      // Fire all feeds in parallel, render each as it arrives
       const promises = [];
       for (const [category, feeds] of Object.entries(RSS_FEEDS)) {
         for (const feed of feeds) {
-          promises.push(fetchSingleFeed(feed.url, feed.source, category));
+          const p = fetchSingleFeed(feed.url, feed.source, category)
+            .then(articles => mergeArticles(articles));
+          promises.push(p);
         }
       }
-      const results = await Promise.allSettled(promises);
-      const articles = [];
-      const seen = new Set();
-      for (const result of results) {
-        if (result.status === 'fulfilled') {
-          for (const article of result.value) {
-            // Deduplicate by title
-            const key = article.title.toLowerCase().trim();
-            if (key && !seen.has(key)) {
-              seen.add(key);
-              articles.push(article);
-            }
-          }
-        }
-      }
-      // Sort by date, newest first
-      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-      allNews = articles;
-      newsLoaded = true;
-      renderNews();
-      updateTimestamp();
-      setConnected(true);
-      dismissBoot();
+      await Promise.allSettled(promises);
     }
 
     // ── RENDER NEWS ──
