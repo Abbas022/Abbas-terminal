@@ -4,44 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ABBAS TERMINAL | News & Predictions</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg: #0a0e17;
-      --panel: #0d1220;
-      --border: #1a2035;
-      --text: #c8d0e0;
-      --muted: #4a5568;
-      --amber: #ff9800;
-      --amber-dim: #b36b00;
-      --green: #00e676;
-      --red: #ff1744;
-      --blue: #448aff;
-      --header-bg: #111827;
+      --bg: #0a0e14;
+      --panel: #0d1117;
+      --border: #1a2030;
+      --text: #c0c8d8;
+      --muted: #556;
+      --accent: #ff6600;
+      --accent-dim: #b34700;
+      --green: #26a69a;
+      --red: #ef5350;
+      --hover: #111820;
+      --cat-mideast: #ffcc00;
+      --cat-world: #44aaff;
+      --cat-uspol: #4488ff;
+      --cat-sports: #44cc44;
+      --cat-crypto: #f7931a;
+      --cat-tech: #aa66ff;
+      --cat-business: #ff6688;
+      --cat-science: #22dddd;
     }
 
     html, body {
       height: 100%;
       overflow: hidden;
-      background: var(--border);
-      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, 'Liberation Mono', monospace;
+      background: var(--bg);
+      font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
       font-size: 12px;
       color: var(--text);
     }
 
-    /* ── SHELL GRID ── */
+    /* ── SHELL LAYOUT ── */
     #terminal {
       display: grid;
-      grid-template-rows: auto 1fr 28px;
+      grid-template-rows: auto auto 1fr auto auto;
       height: 100vh;
-      gap: 1px;
-      background: var(--border);
+      background: var(--bg);
     }
 
     /* ── HEADER ── */
     .header-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
       background: var(--panel);
+      border-bottom: 1px solid var(--border);
       padding: 8px 16px;
       display: flex;
       align-items: center;
@@ -50,16 +61,44 @@
     }
 
     .header-brand {
-      color: var(--amber);
+      color: var(--accent);
       font-weight: 700;
-      font-size: 14px;
+      font-size: 18px;
       letter-spacing: 2px;
       white-space: nowrap;
     }
 
-    .header-tagline {
-      color: var(--muted);
+    .header-live {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 83, 80, 0.6); }
+      50% { opacity: 0.7; box-shadow: 0 0 0 5px rgba(239, 83, 80, 0); }
+    }
+
+    .live-label {
+      color: var(--red);
       font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .header-clock {
+      color: var(--muted);
+      font-size: 11px;
       white-space: nowrap;
     }
 
@@ -77,89 +116,145 @@
       font-weight: 600;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      border: 1px solid var(--amber-dim);
+      border: 1px solid var(--accent-dim);
       border-radius: 3px;
       background: transparent;
-      color: var(--amber-dim);
+      color: var(--accent-dim);
       cursor: pointer;
       transition: all 0.15s;
     }
 
     .filter-chip:hover {
-      border-color: var(--amber);
-      color: var(--amber);
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .filter-chip.active {
-      background: var(--amber);
-      border-color: var(--amber);
+      background: var(--accent);
+      border-color: var(--accent);
       color: #000;
+    }
+
+    /* ── TICKER BAR ── */
+    .ticker-bar {
+      position: sticky;
+      top: 44px;
+      z-index: 99;
+      background: var(--hover);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      height: 28px;
+      display: flex;
+      align-items: center;
+    }
+
+    .ticker-track {
+      display: flex;
+      white-space: nowrap;
+      animation: ticker-scroll 40s linear infinite;
+    }
+
+    .ticker-bar:hover .ticker-track {
+      animation-play-state: paused;
+    }
+
+    .ticker-item {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+
+    .ticker-sep {
+      color: var(--border);
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    @keyframes ticker-scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
 
     /* ── MAIN CONTENT ── */
     .main-grid {
       display: grid;
-      grid-template-columns: 3fr 2fr;
+      grid-template-columns: 7fr 3fr;
       gap: 1px;
       background: var(--border);
       min-height: 0;
+      overflow: hidden;
     }
 
-    .panel {
-      background: var(--panel);
-      display: flex;
-      flex-direction: column;
+    /* ── MAIN FEED (LEFT 70%) ── */
+    .main-feed {
+      background: var(--bg);
+      overflow-y: auto;
       min-height: 0;
     }
 
-    .panel-header {
-      background: var(--header-bg);
-      padding: 8px 12px;
+    .main-feed::-webkit-scrollbar { width: 4px; }
+    .main-feed::-webkit-scrollbar-track { background: var(--bg); }
+    .main-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .category-section {
+      margin-bottom: 2px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .category-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .category-name {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      color: var(--amber);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      color: var(--text);
     }
 
-    .panel-header .hint {
-      color: var(--muted);
-      font-weight: 400;
+    .category-count {
       font-size: 10px;
-      letter-spacing: 0;
-      text-transform: none;
+      color: var(--muted);
+      margin-left: auto;
     }
 
-    .panel-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0;
-      min-height: 0;
-    }
-
-    /* Scrollbar */
-    .panel-body::-webkit-scrollbar { width: 4px; }
-    .panel-body::-webkit-scrollbar-track { background: var(--panel); }
-    .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    /* ── NEWS FEED ── */
     .news-item {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
-      cursor: pointer;
-      transition: background 0.2s;
       display: flex;
       gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(26, 32, 48, 0.5);
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background 0.15s;
       text-decoration: none;
       color: inherit;
+      background: var(--panel);
     }
 
-    .news-item:hover { background: rgba(255, 152, 0, 0.04); }
+    .news-item:hover {
+      background: var(--hover);
+    }
+
+    .news-item:hover .news-title {
+      color: var(--accent);
+    }
 
     .news-thumb {
       width: 80px;
@@ -175,34 +270,31 @@
     .news-meta {
       display: flex;
       gap: 8px;
-      font-size: 10px;
+      font-size: 11px;
       margin-bottom: 4px;
       align-items: center;
     }
 
-    .news-time { color: var(--blue); }
-    .news-source { color: var(--muted); }
+    .news-time { color: var(--accent); }
 
-    .news-badge {
-      font-size: 9px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 1px 5px;
+    .news-source {
+      font-size: 10px;
+      padding: 1px 6px;
       border-radius: 2px;
-      background: rgba(255, 152, 0, 0.15);
-      color: var(--amber);
+      background: var(--hover);
+      color: var(--muted);
     }
 
     .news-title {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text);
       line-height: 1.4;
       font-weight: 500;
+      transition: color 0.15s;
     }
 
     .news-body {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--muted);
       line-height: 1.3;
       margin-top: 3px;
@@ -212,64 +304,178 @@
       overflow: hidden;
     }
 
-    /* ── PREDICTION MARKETS ── */
-    .market-card {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(26, 32, 53, 0.5);
-      cursor: pointer;
-      transition: background 0.2s;
-      display: block;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .market-card:hover { background: rgba(255, 152, 0, 0.04); }
-
-    .market-card-header {
+    /* ── SIDEBAR (RIGHT 30%) ── */
+    .sidebar {
+      background: var(--bg);
+      overflow-y: auto;
+      min-height: 0;
+      padding: 10px;
       display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: var(--bg); }
+    .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .sidebar-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 14px;
+    }
+
+    .sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .feed-status-item {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .market-question {
-      font-size: 12px;
+      padding: 4px 0;
+      font-size: 11px;
       color: var(--text);
-      line-height: 1.4;
-      font-weight: 500;
-      flex: 1;
     }
 
-    .market-badge {
+    .feed-status-name { flex: 1; }
+
+    .feed-status-icon {
+      font-size: 12px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .feed-status-icon.ok { color: var(--green); }
+    .feed-status-icon.fail { color: var(--red); }
+
+    .cat-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      font-size: 11px;
+    }
+
+    .cat-stat-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .cat-stat-name { flex: 1; color: var(--text); }
+    .cat-stat-count { color: var(--muted); font-weight: 600; }
+
+    .country-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      font-size: 11px;
+    }
+
+    .country-flag { font-size: 14px; flex-shrink: 0; }
+    .country-name { flex: 1; color: var(--text); }
+
+    .country-badge {
       font-size: 9px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 1px 5px;
+      padding: 1px 6px;
       border-radius: 2px;
-      background: rgba(255, 152, 0, 0.15);
-      color: var(--amber);
-      white-space: nowrap;
+    }
+
+    .country-badge.active { background: rgba(38, 166, 154, 0.2); color: var(--green); }
+    .country-badge.alert { background: rgba(239, 83, 80, 0.2); color: var(--red); }
+    .country-badge.monitoring { background: rgba(255, 102, 0, 0.2); color: var(--accent); }
+
+    /* ── PREDICTION MARKETS STRIP ── */
+    .markets-strip {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       flex-shrink: 0;
+    }
+
+    .markets-strip-header {
+      padding: 6px 14px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .markets-strip-header .muted-label {
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: 10px;
+    }
+
+    .markets-scroll {
+      display: flex;
+      gap: 10px;
+      padding: 10px 14px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    .markets-scroll::-webkit-scrollbar { height: 4px; }
+    .markets-scroll::-webkit-scrollbar-track { background: var(--panel); }
+    .markets-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .market-card {
+      min-width: 220px;
+      max-width: 280px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .market-card:hover {
+      background: var(--hover);
+      border-color: var(--accent-dim);
+    }
+
+    .market-question {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.3;
+      font-weight: 500;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .market-prob-row {
       display: flex;
-      gap: 12px;
       align-items: center;
-      margin-bottom: 4px;
+      gap: 8px;
     }
-
-    .market-prob-label {
-      font-size: 10px;
-      font-weight: 600;
-      width: 28px;
-      flex-shrink: 0;
-    }
-
-    .market-prob-label.yes { color: var(--green); }
-    .market-prob-label.no { color: var(--red); }
 
     .market-prob-bar-bg {
       flex: 1;
@@ -285,86 +491,65 @@
       transition: width 0.5s ease;
     }
 
-    .market-prob-bar.yes { background: var(--green); }
-    .market-prob-bar.no { background: var(--red); }
-
     .market-prob-pct {
-      font-size: 11px;
+      font-size: 14px;
       font-weight: 700;
-      width: 40px;
+      min-width: 42px;
       text-align: right;
       flex-shrink: 0;
     }
 
-    .market-prob-pct.yes { color: var(--green); }
-    .market-prob-pct.no { color: var(--red); }
+    .market-badge {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1px 5px;
+      border-radius: 2px;
+      background: rgba(255, 102, 0, 0.15);
+      color: var(--accent);
+      align-self: flex-start;
+    }
 
     .market-volume {
       font-size: 10px;
       color: var(--muted);
-      margin-top: 4px;
     }
 
-    /* ── STATUS BAR ── */
-    .status-bar {
+    /* ── BOTTOM BAR ── */
+    .bottom-bar {
       background: var(--panel);
+      border-top: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 12px;
-      font-size: 11px;
-    }
-
-    .status-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .status-brand {
-      color: var(--amber);
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .status-tagline {
-      color: var(--muted);
+      padding: 0 14px;
+      height: 26px;
       font-size: 10px;
+      color: var(--muted);
+      flex-shrink: 0;
     }
 
-    .status-right {
+    .bottom-left {
       display: flex;
       align-items: center;
       gap: 16px;
     }
 
-    .status-update, .status-clock {
-      color: var(--muted);
+    .bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .status-dot {
+    .kb-hint kbd {
       display: inline-block;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    .status-dot.disconnected {
-      background: var(--red);
-      animation: none;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5); }
-      50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0, 230, 118, 0); }
-    }
-
-    .status-label {
-      color: var(--muted);
-      font-size: 10px;
-      margin-left: 4px;
+      padding: 0px 4px;
+      border: 1px solid var(--muted);
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 9px;
+      color: var(--text);
     }
 
     /* ── BOOT OVERLAY ── */
@@ -386,7 +571,7 @@
     }
 
     .boot-title {
-      color: var(--amber);
+      color: var(--accent);
       font-size: 22px;
       font-weight: 700;
       letter-spacing: 4px;
@@ -409,7 +594,7 @@
       display: inline-block;
       width: 7px;
       height: 13px;
-      background: var(--amber);
+      background: var(--accent);
       animation: blink-cursor 0.6s step-end infinite;
       margin-left: 4px;
       vertical-align: middle;
@@ -424,44 +609,39 @@
     .loading-msg {
       color: var(--muted);
       font-size: 11px;
-      padding: 20px 12px;
+      padding: 20px 14px;
       text-align: center;
     }
 
-    /* ── KEYBOARD HINT ── */
-    .kb-hint {
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    .kb-hint kbd {
-      display: inline-block;
-      padding: 1px 5px;
-      border: 1px solid var(--muted);
-      border-radius: 3px;
-      font-family: inherit;
-      font-size: 10px;
-      color: var(--text);
-    }
-
     /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+
       #terminal {
-        grid-template-rows: auto 1fr 28px;
-        overflow-y: auto;
+        grid-template-rows: auto auto auto auto auto auto;
+        height: auto;
+        min-height: 100vh;
       }
 
       .main-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
+        min-height: auto;
+        overflow: visible;
+      }
+
+      .main-feed {
+        overflow-y: visible;
         min-height: auto;
       }
 
-      .panel { min-height: 400px; }
-
-      html, body { overflow: auto; }
+      .sidebar {
+        overflow-y: visible;
+        min-height: auto;
+      }
 
       .header-filters { margin-left: 0; }
+
+      .header-brand { font-size: 14px; }
     }
   </style>
 </head>
@@ -482,53 +662,109 @@
     <!-- HEADER -->
     <div class="header-bar">
       <span class="header-brand">ABBAS TERMINAL</span>
-      <span class="header-tagline">News & Prediction Markets</span>
+      <span class="header-live"><span class="live-dot"></span><span class="live-label">LIVE</span></span>
+      <span class="header-clock" id="header-clock">--:--:--</span>
       <div class="header-filters" id="header-filters"></div>
     </div>
 
-    <!-- MAIN 2-COLUMN -->
+    <!-- TICKER BAR -->
+    <div class="ticker-bar">
+      <div class="ticker-track" id="ticker-track">
+        <span class="ticker-item">Loading feed data...</span>
+      </div>
+    </div>
+
+    <!-- MAIN 70/30 -->
     <div class="main-grid">
 
-      <!-- LEFT: NEWS FEED (~60%) -->
-      <div class="panel">
-        <div class="panel-header">
-          News Feed
-          <span class="hint" id="news-count"></span>
-        </div>
-        <div class="panel-body" id="news-feed">
-          <div class="loading-msg">Loading news...</div>
-        </div>
+      <!-- LEFT: MAIN FEED (70%) -->
+      <div class="main-feed" id="news-feed">
+        <div class="loading-msg">Loading news...</div>
       </div>
 
-      <!-- RIGHT: PREDICTION MARKETS (~40%) -->
-      <div class="panel">
-        <div class="panel-header">
-          Prediction Markets
-          <span class="hint">Polymarket</span>
+      <!-- RIGHT: SIDEBAR (30%) -->
+      <div class="sidebar">
+
+        <!-- Feed Status -->
+        <div class="sidebar-panel">
+          <div class="sidebar-title">Feed Status</div>
+          <div id="feed-status-list">
+            <div class="loading-msg" style="padding: 4px 0;">Checking feeds...</div>
+          </div>
         </div>
-        <div class="panel-body" id="markets-feed">
-          <div class="loading-msg">Loading markets...</div>
+
+        <!-- Category Breakdown -->
+        <div class="sidebar-panel">
+          <div class="sidebar-title">Category Breakdown</div>
+          <div id="category-stats"></div>
         </div>
+
+        <!-- Country Watch -->
+        <div class="sidebar-panel">
+          <div class="sidebar-title">Country Watch</div>
+          <div id="country-watch"></div>
+        </div>
+
       </div>
 
     </div>
 
-    <!-- STATUS BAR -->
-    <div class="status-bar">
-      <div class="status-left">
-        <span class="status-brand">ABBAS TERMINAL</span>
+    <!-- PREDICTION MARKETS STRIP -->
+    <div class="markets-strip">
+      <div class="markets-strip-header">
+        Prediction Markets
+        <span class="muted-label">·</span>
+        <span class="muted-label">POLYMARKET</span>
+        <span class="muted-label">·</span>
+        <span class="muted-label">LIVE ODDS</span>
+      </div>
+      <div class="markets-scroll" id="markets-feed">
+        <div class="loading-msg">Loading markets...</div>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+      <div class="bottom-left">
+        <span id="status-update">LAST UPDATE: —</span>
         <span class="kb-hint"><kbd>R</kbd> refresh</span>
       </div>
-      <div class="status-right">
-        <span class="status-update" id="status-update">LAST UPDATE: —</span>
-        <span class="status-clock" id="status-clock">--:--:--</span>
-        <span><span class="status-dot" id="status-dot"></span><span class="status-label" id="status-label">LIVE</span></span>
+      <div class="bottom-right">
+        <span id="source-count">0 sources</span>
+        <span id="status-clock">--:--:--</span>
+        <span><span class="live-dot" id="status-dot" style="width:6px;height:6px;"></span> <span id="status-label" style="font-size:9px;">LIVE</span></span>
       </div>
     </div>
 
   </div>
 
   <script>
+    // ── CATEGORY COLORS ──
+    const CATEGORY_COLORS = {
+      'Middle East': '#ffcc00',
+      'World': '#44aaff',
+      'US Politics': '#4488ff',
+      'Sports': '#44cc44',
+      'Crypto': '#f7931a',
+      'Tech': '#aa66ff',
+      'Business': '#ff6688',
+      'Science': '#22dddd'
+    };
+
+    // ── COUNTRY WATCH DATA ──
+    const COUNTRY_WATCH = [
+      { flag: '\u{1F1EE}\u{1F1F1}', name: 'Israel', status: 'alert' },
+      { flag: '\u{1F1F5}\u{1F1F8}', name: 'Palestine', status: 'alert' },
+      { flag: '\u{1F1EE}\u{1F1F7}', name: 'Iran', status: 'monitoring' },
+      { flag: '\u{1F1F1}\u{1F1E7}', name: 'Lebanon', status: 'monitoring' },
+      { flag: '\u{1F1F8}\u{1F1FE}', name: 'Syria', status: 'active' },
+      { flag: '\u{1F1FE}\u{1F1EA}', name: 'Yemen', status: 'alert' },
+      { flag: '\u{1F1FA}\u{1F1E6}', name: 'Ukraine', status: 'alert' },
+      { flag: '\u{1F1F7}\u{1F1FA}', name: 'Russia', status: 'monitoring' },
+      { flag: '\u{1F1F9}\u{1F1FC}', name: 'Taiwan', status: 'monitoring' },
+      { flag: '\u{1F1FA}\u{1F1F8}', name: 'United States', status: 'active' }
+    ];
+
     // ── CATEGORIES & FEEDS ──
     const CATEGORIES = [
       'All', 'Middle East', 'World', 'US Politics', 'Sports', 'Crypto', 'Tech', 'Business', 'Science'
@@ -627,6 +863,7 @@
     let bootDone = false;
     let newsLoaded = false;
     let marketsLoaded = false;
+    const feedStatus = {}; // source -> true/false
 
     // ── HELPERS ──
     function timeAgo(dateStr) {
@@ -657,22 +894,30 @@
       const dot = document.getElementById('status-dot');
       const label = document.getElementById('status-label');
       if (ok) {
-        dot.className = 'status-dot';
+        dot.style.background = '#ef5350';
+        dot.style.animation = 'pulse-dot 2s ease-in-out infinite';
         label.textContent = 'LIVE';
       } else {
-        dot.className = 'status-dot disconnected';
+        dot.style.background = '#556';
+        dot.style.animation = 'none';
         label.textContent = 'OFFLINE';
       }
     }
 
     function updateClock() {
-      document.getElementById('status-clock').textContent =
-        new Date().toLocaleTimeString('en-US', { hour12: false });
+      const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+      document.getElementById('status-clock').textContent = time;
+      document.getElementById('header-clock').textContent = time;
     }
 
     function updateTimestamp() {
       document.getElementById('status-update').textContent =
         'LAST UPDATE: ' + new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    function updateSourceCount() {
+      const total = Object.values(RSS_FEEDS).reduce((s, feeds) => s + feeds.length, 0);
+      document.getElementById('source-count').textContent = total + ' sources';
     }
 
     function categorizeMarket(question) {
@@ -696,6 +941,78 @@
         overlay.classList.add('fade-out');
         setTimeout(() => overlay.style.display = 'none', 700);
       }
+    }
+
+    // ── TICKER BAR ──
+    function updateTicker() {
+      const track = document.getElementById('ticker-track');
+      const catCounts = {};
+      for (const a of allNews) {
+        catCounts[a.category] = (catCounts[a.category] || 0) + 1;
+      }
+      const parts = [];
+      parts.push(`${allNews.length} ARTICLES TRACKED`);
+      parts.push(`${Object.keys(RSS_FEEDS).length} CATEGORIES`);
+      const totalSources = Object.values(RSS_FEEDS).reduce((s, f) => s + f.length, 0);
+      parts.push(`${totalSources} RSS SOURCES`);
+      parts.push(`${allMarkets.length} PREDICTION MARKETS`);
+      for (const [cat, count] of Object.entries(catCounts)) {
+        parts.push(`${cat.toUpperCase()}: ${count}`);
+      }
+
+      const itemsHtml = parts.map(p =>
+        `<span class="ticker-item">${p}</span><span class="ticker-sep">|</span>`
+      ).join('');
+      // Duplicate for seamless loop
+      track.innerHTML = itemsHtml + itemsHtml;
+    }
+
+    // ── FEED STATUS SIDEBAR ──
+    function renderFeedStatus() {
+      const container = document.getElementById('feed-status-list');
+      const sources = [];
+      for (const [cat, feeds] of Object.entries(RSS_FEEDS)) {
+        for (const f of feeds) {
+          sources.push({ name: f.source, category: cat, ok: feedStatus[f.source] });
+        }
+      }
+      container.innerHTML = sources.map(s =>
+        `<div class="feed-status-item">` +
+          `<span class="feed-status-name">${s.name} <span style="color:var(--muted);font-size:9px;">(${s.category})</span></span>` +
+          `<span class="feed-status-icon ${s.ok ? 'ok' : (s.ok === false ? 'fail' : '')}">${s.ok ? '\u2713' : (s.ok === false ? '\u2717' : '\u2014')}</span>` +
+        `</div>`
+      ).join('');
+    }
+
+    // ── CATEGORY STATS SIDEBAR ──
+    function renderCategoryStats() {
+      const container = document.getElementById('category-stats');
+      const counts = {};
+      for (const cat of Object.keys(RSS_FEEDS)) {
+        counts[cat] = 0;
+      }
+      for (const a of allNews) {
+        if (counts[a.category] !== undefined) counts[a.category]++;
+      }
+      container.innerHTML = Object.entries(counts).map(([cat, count]) =>
+        `<div class="cat-stat-item">` +
+          `<span class="cat-stat-dot" style="background:${CATEGORY_COLORS[cat] || '#556'}"></span>` +
+          `<span class="cat-stat-name">${cat}</span>` +
+          `<span class="cat-stat-count">${count}</span>` +
+        `</div>`
+      ).join('');
+    }
+
+    // ── COUNTRY WATCH SIDEBAR ──
+    function renderCountryWatch() {
+      const container = document.getElementById('country-watch');
+      container.innerHTML = COUNTRY_WATCH.map(c =>
+        `<div class="country-item">` +
+          `<span class="country-flag">${c.flag}</span>` +
+          `<span class="country-name">${c.name}</span>` +
+          `<span class="country-badge ${c.status}">${c.status.toUpperCase()}</span>` +
+        `</div>`
+      ).join('');
     }
 
     // ── CATEGORY FILTERS ──
@@ -744,9 +1061,19 @@
       try {
         const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`;
         const resp = await fetch(url);
-        if (!resp.ok) return [];
+        if (!resp.ok) {
+          feedStatus[source] = false;
+          renderFeedStatus();
+          return [];
+        }
         const data = await resp.json();
-        if (data.status !== 'ok' || !data.items) return [];
+        if (data.status !== 'ok' || !data.items) {
+          feedStatus[source] = false;
+          renderFeedStatus();
+          return [];
+        }
+        feedStatus[source] = true;
+        renderFeedStatus();
         return data.items.map(item => ({
           title: item.title || '',
           link: item.link || '',
@@ -758,13 +1085,14 @@
         }));
       } catch (e) {
         console.error(`Feed error (${source}):`, e);
+        feedStatus[source] = false;
+        renderFeedStatus();
         return [];
       }
     }
 
     async function fetchAllNews() {
       const seen = new Set();
-      // Deduplicate helper
       function mergeArticles(newArticles) {
         let added = false;
         for (const article of newArticles) {
@@ -779,17 +1107,17 @@
           allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
           newsLoaded = true;
           renderNews();
+          renderCategoryStats();
+          updateTicker();
           updateTimestamp();
           setConnected(true);
           dismissBoot();
         }
       }
 
-      // Clear previous articles for a full refresh
       allNews = [];
       seen.clear();
 
-      // Fire all feeds in parallel, render each as it arrives
       const promises = [];
       for (const [category, feeds] of Object.entries(RSS_FEEDS)) {
         for (const feed of feeds) {
@@ -801,41 +1129,66 @@
       await Promise.allSettled(promises);
     }
 
-    // ── RENDER NEWS ──
+    // ── RENDER NEWS (grouped by category) ──
     function renderNews() {
       const feed = document.getElementById('news-feed');
-      const countEl = document.getElementById('news-count');
       const filtered = allNews.filter(a => matchesFilter([a.category]));
-      countEl.textContent = filtered.length + ' articles';
 
       if (!filtered.length) {
         feed.innerHTML = '<div class="loading-msg">No articles for selected categories</div>';
         return;
       }
 
-      feed.innerHTML = filtered.map(a => {
-        const thumbHtml = a.thumbnail
-          ? `<img class="news-thumb" src="${a.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">`
-          : '';
-        return `<a class="news-item" href="${a.link}" target="_blank" rel="noopener">` +
-          thumbHtml +
-          `<div class="news-content">` +
-            `<div class="news-meta">` +
-              `<span class="news-time">${timeAgo(a.pubDate)}</span>` +
-              `<span class="news-source">${a.source}</span>` +
-              `<span class="news-badge">${a.category}</span>` +
+      // Group by category
+      const groups = {};
+      for (const a of filtered) {
+        if (!groups[a.category]) groups[a.category] = [];
+        groups[a.category].push(a);
+      }
+
+      // Render grouped
+      const categoryOrder = ['Middle East', 'World', 'US Politics', 'Sports', 'Crypto', 'Tech', 'Business', 'Science'];
+      let html = '';
+
+      for (const cat of categoryOrder) {
+        const articles = groups[cat];
+        if (!articles || !articles.length) continue;
+        const color = CATEGORY_COLORS[cat] || '#556';
+
+        html += `<div class="category-section">`;
+        html += `<div class="category-header">` +
+          `<span class="category-dot" style="background:${color}"></span>` +
+          `<span class="category-name">${cat}</span>` +
+          `<span class="category-count">${articles.length} articles</span>` +
+          `</div>`;
+
+        for (const a of articles) {
+          const thumbHtml = a.thumbnail
+            ? `<img class="news-thumb" src="${a.thumbnail}" alt="" loading="lazy" onerror="this.style.display='none'">`
+            : '';
+          html += `<a class="news-item" href="${a.link}" target="_blank" rel="noopener" style="border-left-color:${color}">` +
+            thumbHtml +
+            `<div class="news-content">` +
+              `<div class="news-meta">` +
+                `<span class="news-time">${timeAgo(a.pubDate)}</span>` +
+                `<span class="news-source">${a.source}</span>` +
+              `</div>` +
+              `<div class="news-title">${a.title}</div>` +
+              (a.description ? `<div class="news-body">${a.description}</div>` : '') +
             `</div>` +
-            `<div class="news-title">${a.title}</div>` +
-            (a.description ? `<div class="news-body">${a.description}</div>` : '') +
-          `</div>` +
-          `</a>`;
-      }).join('');
+            `</a>`;
+        }
+
+        html += `</div>`;
+      }
+
+      feed.innerHTML = html;
     }
 
     // ── FETCH PREDICTION MARKETS ──
     const POLYMARKET_URL = 'https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=100&order=volume24hr&ascending=false';
     const CORS_PROXIES = [
-      (url) => url, // try direct first
+      (url) => url,
       (url) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
       (url) => 'https://corsproxy.io/?' + encodeURIComponent(url),
     ];
@@ -871,6 +1224,7 @@
           allMarkets = parseMarkets(data);
           marketsLoaded = true;
           renderMarkets();
+          updateTicker();
           setConnected(true);
           dismissBoot();
           return;
@@ -885,7 +1239,7 @@
         '<div class="loading-msg">Failed to load markets. Will retry...</div>';
     }
 
-    // ── RENDER MARKETS ──
+    // ── RENDER MARKETS (horizontal strip) ──
     function renderMarkets() {
       const feed = document.getElementById('markets-feed');
       const filtered = allMarkets.filter(m => matchesFilter(m.categories));
@@ -897,28 +1251,24 @@
 
       feed.innerHTML = filtered.map(m => {
         const yesPct = Math.round(m.yesPrice * 100);
-        const noPct = Math.round(m.noPrice * 100);
         const polyUrl = m.slug
           ? `https://polymarket.com/event/${m.slug}`
           : 'https://polymarket.com';
         const badge = m.categories[0] || 'World';
+        // Color the bar based on probability
+        let barColor;
+        if (yesPct >= 70) barColor = '#26a69a';
+        else if (yesPct >= 40) barColor = '#ff6600';
+        else barColor = '#ef5350';
 
         return `<a class="market-card" href="${polyUrl}" target="_blank" rel="noopener">` +
-          `<div class="market-card-header">` +
-            `<div class="market-question">${m.question}</div>` +
-            `<span class="market-badge">${badge}</span>` +
-          `</div>` +
+          `<div class="market-question">${m.question}</div>` +
           `<div class="market-prob-row">` +
-            `<span class="market-prob-label yes">YES</span>` +
-            `<div class="market-prob-bar-bg"><div class="market-prob-bar yes" style="width:${yesPct}%"></div></div>` +
-            `<span class="market-prob-pct yes">${yesPct}%</span>` +
+            `<div class="market-prob-bar-bg"><div class="market-prob-bar" style="width:${yesPct}%;background:${barColor}"></div></div>` +
+            `<span class="market-prob-pct" style="color:${barColor}">${yesPct}%</span>` +
           `</div>` +
-          `<div class="market-prob-row">` +
-            `<span class="market-prob-label no">NO</span>` +
-            `<div class="market-prob-bar-bg"><div class="market-prob-bar no" style="width:${noPct}%"></div></div>` +
-            `<span class="market-prob-pct no">${noPct}%</span>` +
-          `</div>` +
-          `<div class="market-volume">Vol 24h: ${fmtVolume(m.volume)} · Total: ${fmtVolume(m.totalVolume)}</div>` +
+          `<span class="market-badge">${badge}</span>` +
+          `<div class="market-volume">Vol: ${fmtVolume(m.volume)}</div>` +
           `</a>`;
       }).join('');
     }
@@ -946,6 +1296,10 @@
     // ── INIT ──
     initFilters();
     updateClock();
+    updateSourceCount();
+    renderCountryWatch();
+    renderFeedStatus();
+    renderCategoryStats();
     setInterval(updateClock, 1000);
     refreshAll();
     setInterval(fetchAllNews, 120000);
