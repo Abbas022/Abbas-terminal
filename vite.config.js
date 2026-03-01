@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
@@ -18,6 +19,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        mixer: resolve(__dirname, 'mixer.html'),
+      },
       output: {
         manualChunks: {
           vendor: ['ethers', 'viem', '@privy-io/js-sdk-core'],

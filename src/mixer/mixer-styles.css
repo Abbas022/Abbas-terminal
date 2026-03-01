@@ -1,3 +1,52 @@
+/* ── STANDALONE PAGE BASE (self-contained when loaded outside the terminal) ── */
+
+:root {
+  --bg: #0a0e14;
+  --panel: #0d1117;
+  --border: #1a2030;
+  --text: #c0c8d8;
+  --muted: #556;
+  --accent: #ff6600;
+  --green: #26a69a;
+  --red: #ef5350;
+  --hover: #111820;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.mixer-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.mixer-page-title {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.mixer-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  max-width: 460px;
+  width: 100%;
+}
+
 /* ── MIXER HEADER BUTTON ── */
 
 .mixer-btn {
