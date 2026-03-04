@@ -1,60 +1,58 @@
-import { PublicKey } from '@solana/web3.js';
+import { getWallets } from '@wallet-standard/app';
+import { createSignerFromWalletAccount } from '@umbra-privacy/sdk';
 
 // ── WALLET DETECTION ──
 
 /**
- * Detects available Solana wallet browser extensions.
- * Returns an array of { name, provider } objects.
+ * Detects available Solana wallets via the Wallet Standard registry.
+ * Returns an array of { name, provider } where `provider` is the
+ * Wallet Standard wallet object. The field is named `provider` for
+ * backward-compatibility with the existing UI layer (mixer-modal.js)
+ * which passes `wallet.provider` to stepConnectSource.
  */
 export function detectSolanaWallets() {
-  const wallets = [];
+  const { get } = getWallets();
+  const allWallets = get();
 
-  if (window.phantom?.solana?.isPhantom) {
-    wallets.push({ name: 'Phantom', provider: window.phantom.solana });
-  }
-
-  if (window.backpack?.solana) {
-    wallets.push({ name: 'Backpack', provider: window.backpack.solana });
-  }
-
-  if (window.solflare?.isSolflare) {
-    wallets.push({ name: 'Solflare', provider: window.solflare });
-  }
-
-  return wallets;
+  // Keep only wallets that support the Solana signing features
+  // required by the Umbra SDK.
+  return allWallets
+    .filter((w) => {
+      const features = Object.keys(w.features);
+      return (
+        features.includes('solana:signTransaction') &&
+        features.includes('solana:signMessage')
+      );
+    })
+    .map((w) => ({ name: w.name, provider: w }));
 }
 
 // ── WALLET CONNECTION ──
 
 /**
- * Connects to a Solana wallet via its injected provider.
- * Returns { publicKey: PublicKey, provider }.
+ * Connects to a Solana wallet via the Wallet Standard interface
+ * and returns an IUmbraSigner created by the SDK.
+ *
+ * @param {import('@wallet-standard/core').Wallet} wallet  Wallet Standard wallet object
+ * @returns {{ address: string, signer: import('@umbra-privacy/sdk').IUmbraSigner }}
  */
-export async function connectSolanaWallet(provider) {
-  const resp = await provider.connect();
-  const publicKey = resp.publicKey || provider.publicKey;
-  if (!publicKey) throw new Error('Wallet did not return a public key');
-  return { publicKey: new PublicKey(publicKey.toString()), provider };
-}
+export async function connectSolanaWallet(wallet) {
+  // Use the Wallet Standard "standard:connect" feature
+  const connectFeature = wallet.features['standard:connect'];
+  if (!connectFeature) {
+    throw new Error('Wallet does not support the standard:connect feature');
+  }
 
-// ── SIGNER WRAPPER ──
+  const { accounts } = await connectFeature.connect();
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts returned from wallet');
+  }
 
-/**
- * Wraps an injected browser wallet provider into the signer shape
- * expected by the Umbra SDK: { publicKey, signTransaction, signAllTransactions }.
- */
-export function createExternalWalletSigner(provider, publicKey) {
-  return {
-    publicKey,
-    signTransaction: async (tx) => {
-      return provider.signTransaction(tx);
-    },
-    signAllTransactions: async (txs) => {
-      if (provider.signAllTransactions) {
-        return provider.signAllTransactions(txs);
-      }
-      // Fallback: sign one by one
-      return Promise.all(txs.map((tx) => provider.signTransaction(tx)));
-    },
-  };
+  const account = accounts[0];
+
+  // Create an IUmbraSigner using the SDK's Wallet Standard adapter.
+  // This handles the Solana Kit v2 transaction format internally.
+  const signer = createSignerFromWalletAccount(wallet, account);
+
+  return { address: signer.address, signer };
 }

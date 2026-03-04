@@ -1,29 +1,51 @@
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import bs58 from 'bs58';
-
 import { STEP } from './mixer-state.js';
 import * as state from './mixer-state.js';
-import { connectSolanaWallet, createExternalWalletSigner } from './solana-wallet.js';
-import {
-  TOKENS,
-  generateFreshWallet,
-  createSourceUmbraClient,
-  createFreshUmbraClient,
-  registerUser,
-  depositIntoEncryptedBalance,
-  createSelfClaimableUtxo,
-  claimUtxo,
-  withdrawToPublicBalance,
-} from './umbra-client.js';
+
+// Heavy deps loaded lazily on first use
+let bs58, connectSolanaWallet;
+let TOKENS, generateFreshWallet, createUmbraClient;
+let registerUser, depositIntoEncryptedBalance, createSelfClaimableUtxo, claimUtxo, withdrawToPublicBalance;
+
+async function loadDeps() {
+  if (bs58) return; // already loaded
+  const [bs58Mod, walletMod, umbraMod] = await Promise.all([
+    import('bs58'),
+    import('./solana-wallet.js'),
+    import('./umbra-client.js'),
+  ]);
+  bs58 = bs58Mod.default;
+  connectSolanaWallet = walletMod.connectSolanaWallet;
+  TOKENS = umbraMod.TOKENS;
+  generateFreshWallet = umbraMod.generateFreshWallet;
+  createUmbraClient = umbraMod.createUmbraClient;
+  registerUser = umbraMod.registerUser;
+  depositIntoEncryptedBalance = umbraMod.depositIntoEncryptedBalance;
+  createSelfClaimableUtxo = umbraMod.createSelfClaimableUtxo;
+  claimUtxo = umbraMod.claimUtxo;
+  withdrawToPublicBalance = umbraMod.withdrawToPublicBalance;
+}
 
 // ── INDIVIDUAL STEP FUNCTIONS ──
 
-export async function stepConnectSource(provider) {
+/**
+ * Connects the source wallet via Wallet Standard.
+ * @param {import('@wallet-standard/core').Wallet} wallet  Wallet Standard wallet object
+ *   (passed as `wallet.provider` from the UI layer)
+ * @returns {string} The wallet address (displayable)
+ */
+export async function stepConnectSource(wallet) {
+  await loadDeps();
   state.setCurrentStep(STEP.CONNECT);
-  const { publicKey, provider: p } = await connectSolanaWallet(provider);
-  state.setSourcePublicKey(publicKey);
-  state.setSourceProvider(p);
-  return publicKey;
+
+  // connectSolanaWallet returns { address: string, signer: IUmbraSigner }
+  const { address, signer } = await connectSolanaWallet(wallet);
+
+  // Store the address string in sourcePublicKey (UI checks truthiness & displays it)
+  state.setSourcePublicKey(address);
+  // Store the IUmbraSigner in sourceProvider (used later to create the Umbra client)
+  state.setSourceProvider(signer);
+
+  return address;
 }
 
 export function stepSelectToken(token, amount) {
@@ -34,37 +56,51 @@ export function stepSelectToken(token, amount) {
 
 async function stepGenerateFresh() {
   state.setCurrentStep(STEP.GENERATE);
-  const { signer, publicKey, privateKey } = await generateFreshWallet();
+
+  // generateFreshWallet returns { signer, address, privateKey: Uint8Array(64) }
+  const { signer, address, privateKey } = await generateFreshWallet();
+
   state.setFreshSigner(signer);
-  state.setFreshPublicKey(publicKey);
+  state.setFreshPublicKey(address);
   state.setFreshPrivateKey(privateKey);
-  return { publicKey, privateKeyBase58: bs58.encode(privateKey) };
+
+  return { publicKey: address, privateKeyBase58: bs58.encode(privateKey) };
 }
 
 async function stepRegisterSource() {
   state.setCurrentStep(STEP.REGISTER_SOURCE);
-  const signer = createExternalWalletSigner(state.sourceProvider, state.sourcePublicKey);
-  const client = await createSourceUmbraClient(signer);
+
+  // The source signer (IUmbraSigner) was stored by stepConnectSource.
+  // Create an Umbra client directly from it — no wrapper needed.
+  const client = await createUmbraClient(state.sourceProvider);
   state.setSourceUmbraClient(client);
-  const sig = await registerUser(client);
-  state.setTxSignatures([...state.txSignatures, sig]);
-  return sig;
+
+  const sigs = await registerUser(client);
+  state.setTxSignatures([...state.txSignatures, ...flatten(sigs)]);
+  return sigs;
 }
 
 async function stepRegisterFresh() {
   state.setCurrentStep(STEP.REGISTER_FRESH);
-  const client = await createFreshUmbraClient(state.freshSigner);
+
+  const client = await createUmbraClient(state.freshSigner);
   state.setFreshUmbraClient(client);
-  const sig = await registerUser(client);
-  state.setTxSignatures([...state.txSignatures, sig]);
-  return sig;
+
+  const sigs = await registerUser(client);
+  state.setTxSignatures([...state.txSignatures, ...flatten(sigs)]);
+  return sigs;
 }
 
 async function stepDeposit() {
   state.setCurrentStep(STEP.DEPOSIT);
   const token = TOKENS[state.selectedToken];
   const amount = parseAmount(state.selectedAmount, token.decimals);
-  const sig = await depositIntoEncryptedBalance(state.sourceUmbraClient, token.mint, amount);
+
+  const sig = await depositIntoEncryptedBalance(
+    state.sourceUmbraClient,
+    token.mint,
+    amount,
+  );
   state.setTxSignatures([...state.txSignatures, sig]);
   return sig;
 }
@@ -73,40 +109,46 @@ async function stepCreateUtxo() {
   state.setCurrentStep(STEP.CREATE_UTXO);
   const token = TOKENS[state.selectedToken];
   const amount = parseAmount(state.selectedAmount, token.decimals);
-  const sig = await createSelfClaimableUtxo(
+
+  // state.freshPublicKey is the fresh wallet's address (base58 string)
+  const sigs = await createSelfClaimableUtxo(
     state.sourceUmbraClient,
     token.mint,
     amount,
     state.freshPublicKey,
   );
-  state.setTxSignatures([...state.txSignatures, sig]);
-  return sig;
+  state.setTxSignatures([...state.txSignatures, ...flatten(sigs)]);
+  return sigs;
 }
 
 async function stepClaimUtxo() {
   state.setCurrentStep(STEP.CLAIM_UTXO);
-  const token = TOKENS[state.selectedToken];
-  const sig = await claimUtxo(state.freshUmbraClient, token.mint);
-  state.setTxSignatures([...state.txSignatures, sig]);
-  return sig;
+
+  // claimUtxo fetches UTXOs internally and returns an array of sigs
+  const sigs = await claimUtxo(state.freshUmbraClient);
+  state.setTxSignatures([...state.txSignatures, ...flatten(sigs)]);
+  return sigs;
 }
 
 async function stepWithdraw() {
   state.setCurrentStep(STEP.WITHDRAW);
   const token = TOKENS[state.selectedToken];
   const amount = parseAmount(state.selectedAmount, token.decimals);
-  const sig = await withdrawToPublicBalance(state.freshUmbraClient, token.mint, amount);
+
+  const sig = await withdrawToPublicBalance(
+    state.freshUmbraClient,
+    token.mint,
+    amount,
+  );
   state.setTxSignatures([...state.txSignatures, sig]);
   return sig;
 }
 
 // ── PIPELINE ORCHESTRATOR ──
 
-/**
- * Runs steps 3–9 sequentially. Calls onProgress(step, message) at each transition.
- * Returns { freshPublicKey, freshPrivateKeyBase58, txSignatures } on success.
- */
 export async function executeMixerPipeline(onProgress) {
+  await loadDeps();
+
   const steps = [
     { fn: stepGenerateFresh,  step: STEP.GENERATE,        msg: 'Generating fresh wallet...' },
     { fn: stepRegisterSource, step: STEP.REGISTER_SOURCE, msg: 'Registering source wallet with Umbra...' },
@@ -132,7 +174,7 @@ export async function executeMixerPipeline(onProgress) {
   onProgress(STEP.COMPLETE, 'Mixing complete!');
 
   return {
-    freshPublicKey: state.freshPublicKey.toString(),
+    freshPublicKey: String(state.freshPublicKey),
     freshPrivateKeyBase58: bs58.encode(state.freshPrivateKey),
     txSignatures: [...state.txSignatures],
   };
@@ -143,6 +185,14 @@ export async function executeMixerPipeline(onProgress) {
 function parseAmount(amountStr, decimals) {
   const num = parseFloat(amountStr);
   if (isNaN(num) || num <= 0) throw new Error('Invalid amount');
-  // Convert to smallest unit (lamports for SOL, micro-units for SPL)
   return BigInt(Math.round(num * 10 ** decimals));
+}
+
+/**
+ * Normalizes a value that may be a single string or an array of strings
+ * into a flat array, filtering out falsy entries.
+ */
+function flatten(val) {
+  if (Array.isArray(val)) return val.filter(Boolean);
+  return val ? [val] : [];
 }
