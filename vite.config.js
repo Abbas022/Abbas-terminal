@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
-  base: '/my-cool-app/',
+  base: process.env.VITE_BASE_PATH || '/',
   root: '.',
   publicDir: 'public',
   plugins: [

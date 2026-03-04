@@ -30,6 +30,7 @@ jobs:
       - name: Build
         run: yarn build
         env:
+          VITE_BASE_PATH: /my-cool-app/
           VITE_PRIVY_APP_ID: ${{ secrets.VITE_PRIVY_APP_ID }}
           VITE_PRIVY_CLIENT_ID: ${{ secrets.VITE_PRIVY_CLIENT_ID }}
 
