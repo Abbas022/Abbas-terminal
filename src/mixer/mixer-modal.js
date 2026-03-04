@@ -2,8 +2,22 @@ import './mixer-styles.css';
 
 import { STEP, PIPELINE_STEPS, STEP_LABELS } from './mixer-state.js';
 import * as state from './mixer-state.js';
-import { detectSolanaWallets } from './solana-wallet.js';
-import { stepConnectSource, stepSelectToken, executeMixerPipeline } from './mixer-flow.js';
+
+// Heavy deps lazy-loaded when the modal opens
+let detectSolanaWallets, disconnectSolanaWallet, stepConnectSource, stepSelectToken, executeMixerPipeline;
+
+async function loadMixerDeps() {
+  if (detectSolanaWallets) return;
+  const [walletMod, flowMod] = await Promise.all([
+    import('./solana-wallet.js'),
+    import('./mixer-flow.js'),
+  ]);
+  detectSolanaWallets = walletMod.detectSolanaWallets;
+  disconnectSolanaWallet = walletMod.disconnectSolanaWallet;
+  stepConnectSource = flowMod.stepConnectSource;
+  stepSelectToken = flowMod.stepSelectToken;
+  executeMixerPipeline = flowMod.executeMixerPipeline;
+}
 
 // ── HELPERS ──
 
@@ -33,9 +47,10 @@ export function initMixerUI() {
 
 // ── MODAL ──
 
-export function openMixerModal() {
+export async function openMixerModal() {
   removeModal();
 
+  await loadMixerDeps();
   const wallets = detectSolanaWallets();
 
   const overlay = document.createElement('div');
@@ -55,6 +70,10 @@ export function openMixerModal() {
           }
         </div>
         <div class="mixer-wallet-status" id="mixer-wallet-status"></div>
+        <div class="mixer-wallet-connected" id="mixer-wallet-connected" style="display:none;">
+          <span class="mixer-wallet-addr" id="mixer-wallet-addr"></span>
+          <button class="mixer-disconnect-btn" id="mixer-disconnect-btn">Disconnect</button>
+        </div>
 
         <div class="mixer-section-label">TOKEN</div>
         <div class="mixer-token-toggle" id="mixer-token-toggle">
@@ -115,24 +134,28 @@ export function openMixerModal() {
   const progressEl  = overlay.querySelector('#mixer-progress');
   const completeEl  = overlay.querySelector('#mixer-complete');
   const errorEl     = overlay.querySelector('#mixer-error');
-  const walletPicker = overlay.querySelector('#mixer-wallet-picker');
-  const walletStatus = overlay.querySelector('#mixer-wallet-status');
-  const tokenToggle  = overlay.querySelector('#mixer-token-toggle');
-  const amountInput  = overlay.querySelector('#mixer-amount');
-  const mixBtn       = overlay.querySelector('#mixer-mix-btn');
-  const stepperEl    = overlay.querySelector('#mixer-stepper');
-  const progressMsg  = overlay.querySelector('#mixer-progress-msg');
-  const spinnerEl    = overlay.querySelector('#mixer-spinner');
-  const freshAddrEl  = overlay.querySelector('#mixer-fresh-addr');
-  const keyBoxEl     = overlay.querySelector('#mixer-key-box');
-  const copyAddrBtn  = overlay.querySelector('#mixer-copy-addr');
-  const copyKeyBtn   = overlay.querySelector('#mixer-copy-key');
-  const txListEl     = overlay.querySelector('#mixer-tx-list');
-  const errorMsgEl   = overlay.querySelector('#mixer-error-msg');
-  const retryBtn     = overlay.querySelector('#mixer-retry-btn');
+  const walletPicker    = overlay.querySelector('#mixer-wallet-picker');
+  const walletStatus    = overlay.querySelector('#mixer-wallet-status');
+  const walletConnected = overlay.querySelector('#mixer-wallet-connected');
+  const walletAddrEl    = overlay.querySelector('#mixer-wallet-addr');
+  const disconnectBtn   = overlay.querySelector('#mixer-disconnect-btn');
+  const tokenToggle     = overlay.querySelector('#mixer-token-toggle');
+  const amountInput     = overlay.querySelector('#mixer-amount');
+  const mixBtn          = overlay.querySelector('#mixer-mix-btn');
+  const stepperEl       = overlay.querySelector('#mixer-stepper');
+  const progressMsg     = overlay.querySelector('#mixer-progress-msg');
+  const spinnerEl       = overlay.querySelector('#mixer-spinner');
+  const freshAddrEl     = overlay.querySelector('#mixer-fresh-addr');
+  const keyBoxEl        = overlay.querySelector('#mixer-key-box');
+  const copyAddrBtn     = overlay.querySelector('#mixer-copy-addr');
+  const copyKeyBtn      = overlay.querySelector('#mixer-copy-key');
+  const txListEl        = overlay.querySelector('#mixer-tx-list');
+  const errorMsgEl      = overlay.querySelector('#mixer-error-msg');
+  const retryBtn        = overlay.querySelector('#mixer-retry-btn');
 
   let mixingInProgress = false;
   let resultData = null;
+  let connectedWallet = null;
 
   // ── PHASE SWITCHING ──
   function showPhase(phase) {
@@ -140,6 +163,34 @@ export function openMixerModal() {
     progressEl.style.display = phase === 'progress' ? '' : 'none';
     completeEl.style.display = phase === 'complete' ? '' : 'none';
     errorEl.style.display    = phase === 'error'    ? '' : 'none';
+  }
+
+  function showWalletConnected(address) {
+    walletPicker.style.display = 'none';
+    walletStatus.style.display = 'none';
+    walletConnected.style.display = '';
+    walletAddrEl.textContent = shortenAddress(address);
+    amountInput.disabled = false;
+    updateMixBtn();
+  }
+
+  function showWalletDisconnected() {
+    connectedWallet = null;
+    state.setSourcePublicKey(null);
+    state.setSourceProvider(null);
+    walletPicker.style.display = '';
+    walletStatus.style.display = '';
+    walletStatus.textContent = '';
+    walletStatus.classList.remove('mixer-connected', 'mixer-error-text');
+    walletConnected.style.display = 'none';
+    walletPicker.querySelectorAll('.mixer-wallet-btn').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('active');
+      b.textContent = b.dataset.wallet;
+    });
+    amountInput.disabled = true;
+    amountInput.value = '';
+    updateMixBtn();
   }
 
   // ── CLOSE HANDLING ──
@@ -166,24 +217,26 @@ export function openMixerModal() {
     if (!wallet) return;
 
     btn.disabled = true;
-    btn.textContent = 'Connecting...';
+    btn.textContent = 'Connecting\u2026';
     try {
-      const pubkey = await stepConnectSource(wallet.provider);
-      walletStatus.textContent = `Connected: ${shortenAddress(pubkey)}`;
-      walletStatus.classList.add('mixer-connected');
-      walletPicker.querySelectorAll('.mixer-wallet-btn').forEach(b => {
-        b.disabled = true;
-        b.classList.remove('active');
-      });
-      btn.classList.add('active');
-      amountInput.disabled = false;
-      updateMixBtn();
+      const address = await stepConnectSource(wallet.provider);
+      connectedWallet = wallet;
+      showWalletConnected(address);
     } catch (err) {
       btn.disabled = false;
       btn.textContent = walletName;
       walletStatus.textContent = `Connection failed: ${err.message}`;
       walletStatus.classList.add('mixer-error-text');
     }
+  });
+
+  // ── DISCONNECT ──
+  disconnectBtn.addEventListener('click', async () => {
+    if (mixingInProgress) return;
+    if (connectedWallet) {
+      try { await disconnectSolanaWallet(connectedWallet.provider); } catch (_) {}
+    }
+    showWalletDisconnected();
   });
 
   // ── TOKEN TOGGLE ──

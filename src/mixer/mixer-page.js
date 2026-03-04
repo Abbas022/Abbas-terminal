@@ -2,7 +2,7 @@ import { STEP, PIPELINE_STEPS, STEP_LABELS } from './mixer-state.js';
 import * as state from './mixer-state.js';
 
 // Heavy deps lazy-loaded on first render
-let detectSolanaWallets, stepConnectSource, stepSelectToken, executeMixerPipeline;
+let detectSolanaWallets, disconnectSolanaWallet, stepConnectSource, stepSelectToken, executeMixerPipeline;
 
 async function loadMixerDeps() {
   if (detectSolanaWallets) return;
@@ -11,6 +11,7 @@ async function loadMixerDeps() {
     import('./mixer-flow.js'),
   ]);
   detectSolanaWallets = walletMod.detectSolanaWallets;
+  disconnectSolanaWallet = walletMod.disconnectSolanaWallet;
   stepConnectSource = flowMod.stepConnectSource;
   stepSelectToken = flowMod.stepSelectToken;
   executeMixerPipeline = flowMod.executeMixerPipeline;
@@ -79,6 +80,10 @@ export async function renderMixerPage(container) {
             }
           </div>
           <div class="mixer-wallet-status" id="mixer-wallet-status"></div>
+          <div class="mixer-wallet-connected" id="mixer-wallet-connected" style="display:none;">
+            <span class="mixer-wallet-addr" id="mixer-wallet-addr"></span>
+            <button class="mixer-disconnect-btn" id="mixer-disconnect-btn">Disconnect</button>
+          </div>
 
           <div class="mixer-section-label">Select Token</div>
           <div class="mixer-token-toggle" id="mixer-token-toggle">
@@ -159,9 +164,12 @@ export async function renderMixerPage(container) {
   const progressEl   = container.querySelector('#mixer-progress');
   const completeEl   = container.querySelector('#mixer-complete');
   const errorEl      = container.querySelector('#mixer-error');
-  const walletPicker = container.querySelector('#mixer-wallet-picker');
-  const walletStatus = container.querySelector('#mixer-wallet-status');
-  const tokenToggle  = container.querySelector('#mixer-token-toggle');
+  const walletPicker    = container.querySelector('#mixer-wallet-picker');
+  const walletStatus    = container.querySelector('#mixer-wallet-status');
+  const walletConnected = container.querySelector('#mixer-wallet-connected');
+  const walletAddrEl    = container.querySelector('#mixer-wallet-addr');
+  const disconnectBtn   = container.querySelector('#mixer-disconnect-btn');
+  const tokenToggle     = container.querySelector('#mixer-token-toggle');
   const amountInput  = container.querySelector('#mixer-amount');
   const amountSuffix = container.querySelector('#mixer-amount-suffix');
   const mixBtn       = container.querySelector('#mixer-mix-btn');
@@ -177,6 +185,7 @@ export async function renderMixerPage(container) {
 
   let mixingInProgress = false;
   let resultData = null;
+  let connectedWallet = null;
 
   // ── PHASE SWITCHING ──
   function showPhase(phase) {
@@ -184,6 +193,35 @@ export async function renderMixerPage(container) {
     progressEl.style.display = phase === 'progress' ? '' : 'none';
     completeEl.style.display = phase === 'complete' ? '' : 'none';
     errorEl.style.display    = phase === 'error'    ? '' : 'none';
+  }
+
+  function showWalletConnected(address) {
+    walletPicker.style.display = 'none';
+    walletStatus.style.display = 'none';
+    walletConnected.style.display = '';
+    walletAddrEl.textContent = shortenAddress(address);
+    amountInput.disabled = false;
+    updateMixBtn();
+  }
+
+  function showWalletDisconnected() {
+    connectedWallet = null;
+    state.setSourcePublicKey(null);
+    state.setSourceProvider(null);
+    walletPicker.style.display = '';
+    walletStatus.style.display = '';
+    walletStatus.textContent = '';
+    walletStatus.classList.remove('mixer-connected', 'mixer-error-text');
+    walletConnected.style.display = 'none';
+    walletPicker.querySelectorAll('.mixer-wallet-btn').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('active', 'connecting');
+      const labelEl = b.querySelector('span');
+      if (labelEl) labelEl.textContent = b.dataset.wallet;
+    });
+    amountInput.disabled = true;
+    amountInput.value = '';
+    updateMixBtn();
   }
 
   // ── WALLET PICKER ──
@@ -202,16 +240,9 @@ export async function renderMixerPage(container) {
     labelEl.textContent = 'Connecting\u2026';
 
     try {
-      const pubkey = await stepConnectSource(wallet.provider);
-      walletStatus.textContent = `Connected: ${shortenAddress(pubkey)}`;
-      walletStatus.classList.add('mixer-connected');
-      walletPicker.querySelectorAll('.mixer-wallet-btn').forEach(b => {
-        b.disabled = true;
-        b.classList.remove('active', 'connecting');
-      });
-      btn.classList.add('active');
-      amountInput.disabled = false;
-      updateMixBtn();
+      const address = await stepConnectSource(wallet.provider);
+      connectedWallet = wallet;
+      showWalletConnected(address);
     } catch (err) {
       btn.disabled = false;
       btn.classList.remove('connecting');
@@ -219,6 +250,15 @@ export async function renderMixerPage(container) {
       walletStatus.textContent = `Connection failed: ${err.message}`;
       walletStatus.classList.add('mixer-error-text');
     }
+  });
+
+  // ── DISCONNECT ──
+  disconnectBtn.addEventListener('click', async () => {
+    if (mixingInProgress) return;
+    if (connectedWallet) {
+      try { await disconnectSolanaWallet(connectedWallet.provider); } catch (_) {}
+    }
+    showWalletDisconnected();
   });
 
   // ── TOKEN TOGGLE ──

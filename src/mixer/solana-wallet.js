@@ -56,3 +56,16 @@ export async function connectSolanaWallet(wallet) {
 
   return { address: signer.address, signer };
 }
+
+// ── WALLET DISCONNECTION ──
+
+/**
+ * Disconnects from a Solana wallet via the Wallet Standard interface.
+ * @param {import('@wallet-standard/core').Wallet} wallet  Wallet Standard wallet object
+ */
+export async function disconnectSolanaWallet(wallet) {
+  const disconnectFeature = wallet.features['standard:disconnect'];
+  if (disconnectFeature) {
+    await disconnectFeature.disconnect();
+  }
+}
